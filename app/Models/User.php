@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail; // ✅ add this
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\VerifyEmailCustom;
 
-class User extends Authenticatable implements MustVerifyEmail // ✅ implement
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -24,9 +24,9 @@ class User extends Authenticatable implements MustVerifyEmail // ✅ implement
         'learning_format',
         'learning_pace',
         'onboarded_at',
-        'provider',        // 🔥 for OAuth (optional but recommended)
-        'provider_id',     // 🔥 for OAuth (optional but recommended)
-        'email_verified_at', // allow setting this for Google users
+        'provider',
+        'provider_id',
+        'email_verified_at',
     ];
 
     /**
@@ -58,7 +58,13 @@ class User extends Authenticatable implements MustVerifyEmail // ✅ implement
         return !is_null($this->onboarded_at);
     }
 
-    
+    /**
+     * User profile relationship
+     */
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
 
     public function sendEmailVerificationNotification()
     {

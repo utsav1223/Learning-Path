@@ -17,7 +17,8 @@ class SocialController
     // Handle callback
     public function callback()
     {
-        $googleUser = Socialite::driver('google')->user();
+        // $googleUser = Socialite::driver('google')->user();
+        $googleUser = Socialite::driver('google')->stateless()->user();
 
         // check if user already exists
         $user = User::where('email', $googleUser->getEmail())->first();

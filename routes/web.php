@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\SocialController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OnboardingController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,10 +24,6 @@ Route::get('/register', [RegisterController::class, 'showForm'])
 
 Route::post('/register', [RegisterController::class, 'register'])
     ->name('register.post');
-
-Route::get('/onboarding', function () {
-    return 'Onboarding Page (next step)';
-})->name('onboarding');
 
 Route::get('/auth/google', [SocialController::class, 'redirect'])->name('google.login');
 Route::get('/auth/google/callback', [SocialController::class, 'callback']);
@@ -47,9 +45,9 @@ Route::post('/email/verification-notification', function (Request $request) {
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return 'Dashboard';
-    })->name('dashboard');
+    Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding');
+    Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
 });
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login');

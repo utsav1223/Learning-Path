@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses API Test | SkillWeave</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <header class="rounded-[1.75rem] bg-slate-950 p-6 text-white shadow-sm sm:p-8">
+            <p class="text-sm font-extrabold uppercase tracking-[0.22em] text-blue-200">Frontend API test</p>
+            <div class="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight sm:text-5xl">Courses</h1>
+                    <p class="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-300">This page fetches categories and courses from the Laravel API and lets you test search, category, and difficulty filters.</p>
+                </div>
+                <a href="/" class="rounded-full bg-white px-5 py-3 text-center text-sm font-extrabold text-slate-950">Back to app</a>
+            </div>
+        </header>
+
+        <section class="mt-6 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <div class="grid gap-3 md:grid-cols-[1fr_14rem_14rem_auto] md:items-end">
+                <label>
+                    <span class="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">Search</span>
+                    <input id="search" type="search" placeholder="Laravel, API, frontend..." class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold outline-none focus:border-blue-500">
+                </label>
+                <label>
+                    <span class="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">Category</span>
+                    <select id="category" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold outline-none focus:border-blue-500">
+                        <option value="">All categories</option>
+                    </select>
+                </label>
+                <label>
+                    <span class="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">Difficulty</span>
+                    <select id="difficulty" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold outline-none focus:border-blue-500">
+                        <option value="">All levels</option>
+                        <option>Beginner</option>
+                        <option>Intermediate</option>
+                        <option>Advanced</option>
+                    </select>
+                </label>
+                <button id="refresh" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-extrabold uppercase tracking-[0.16em] text-white">Refresh</button>
+            </div>
+            <p id="status" class="mt-4 text-sm font-bold text-slate-500">Loading courses...</p>
+        </section>
+
+        <section id="courses" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3"></section>
+    </main>
+
+    <script>
+        const coursesEl = document.getElementById('courses');
+        const statusEl = document.getElementById('status');
+        const categoryEl = document.getElementById('category');
+        const difficultyEl = document.getElementById('difficulty');
+        const searchEl = document.getElementById('search');
+        const refreshEl = document.getElementById('refresh');
+
+        const requestJson = async (url) => {
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(response.status === 401 ? 'Login is required before testing these API routes.' : `Request failed with ${response.status}`);
+            }
+
+            return response.json();
+        };
+
+        const loadCategories = async () => {
+            const data = await requestJson('/api/categories');
+            categoryEl.innerHTML = '<option value="">All categories</option>';
+            data.categories.forEach((category) => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = `${category.name} (${category.courses_count ?? 0})`;
+                categoryEl.appendChild(option);
+            });
+        };
+
+        const renderCourses = (courses) => {
+            coursesEl.innerHTML = '';
+
+            if (!courses.length) {
+                coursesEl.innerHTML = '<div class="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center font-bold text-slate-500 md:col-span-2 xl:col-span-3">No courses found for these filters.</div>';
+                return;
+            }
+
+            courses.forEach((course) => {
+                const article = document.createElement('article');
+                article.className = 'overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm';
+                article.innerHTML = `
+                    <div class="h-36 bg-slate-900">
+                        ${course.thumbnail ? `<img src="${course.thumbnail}" alt="" class="h-full w-full object-cover">` : '<div class="flex h-full items-center justify-center text-sm font-extrabold uppercase tracking-[0.2em] text-slate-400">SkillWeave</div>'}
+                    </div>
+                    <div class="p-5">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">${course.category?.name ?? 'Uncategorized'}</span>
+                            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-extrabold text-slate-600">${course.difficulty_level}</span>
+                        </div>
+                        <h2 class="mt-4 text-xl font-extrabold">${course.title}</h2>
+                        <p class="mt-3 line-clamp-3 text-sm font-semibold leading-6 text-slate-500">${course.description}</p>
+                        <p class="mt-5 text-sm font-extrabold text-slate-700">${course.estimated_hours} estimated hours</p>
+                    </div>
+                `;
+                coursesEl.appendChild(article);
+            });
+        };
+
+        const loadCourses = async () => {
+            statusEl.textContent = 'Loading courses...';
+            const params = new URLSearchParams();
+
+            if (categoryEl.value) params.set('category_id', categoryEl.value);
+            if (difficultyEl.value) params.set('difficulty_level', difficultyEl.value);
+            if (searchEl.value.trim()) params.set('search', searchEl.value.trim());
+
+            const url = `/api/courses${params.toString() ? `?${params}` : ''}`;
+            const data = await requestJson(url);
+            renderCourses(data.courses);
+            statusEl.textContent = `${data.courses.length} course${data.courses.length === 1 ? '' : 's'} loaded.`;
+        };
+
+        const boot = async () => {
+            try {
+                await loadCategories();
+                await loadCourses();
+            } catch (error) {
+                coursesEl.innerHTML = '';
+                statusEl.textContent = error.message;
+                statusEl.className = 'mt-4 text-sm font-bold text-rose-600';
+            }
+        };
+
+        refreshEl.addEventListener('click', loadCourses);
+        categoryEl.addEventListener('change', loadCourses);
+        difficultyEl.addEventListener('change', loadCourses);
+        searchEl.addEventListener('input', () => {
+            window.clearTimeout(searchEl.searchTimer);
+            searchEl.searchTimer = window.setTimeout(loadCourses, 250);
+        });
+
+        boot();
+    </script>
+</body>
+</html>
