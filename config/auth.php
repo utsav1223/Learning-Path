@@ -20,6 +20,10 @@ return [
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
+    'verification' => [
+        'expire' => 5, // 5 minutes
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards
