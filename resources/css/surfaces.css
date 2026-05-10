@@ -1,0 +1,99 @@
+/**
+ * Semantic Surface Classes
+ * Centralize visual surface patterns to prevent Tailwind duplication
+ * Use instead of: bg-white rounded-2xl shadow-sm
+ */
+
+/* Primary Surfaces */
+.surface-primary {
+    @apply bg-white rounded-[1.75rem] border border-slate-200 shadow-sm;
+}
+
+.surface-primary-elevated {
+    @apply bg-white rounded-[1.75rem] border border-slate-200 shadow-lg shadow-slate-200/50;
+}
+
+/* Tablet-Enhanced Surfaces */
+.surface-primary-md {
+    @apply bg-white rounded-2xl md:rounded-[1.75rem] border border-slate-200 shadow-sm md:shadow-xl md:shadow-slate-200/60;
+}
+
+/* Secondary Surfaces */
+.surface-muted {
+    @apply bg-slate-50 rounded-2xl;
+}
+
+.surface-muted-md {
+    @apply bg-slate-50 rounded-2xl md:shadow-xl md:shadow-slate-200/60;
+}
+
+/* Dark Surfaces */
+.surface-dark {
+    @apply bg-slate-950 text-white rounded-[1.75rem];
+}
+
+/* Alert/Status Surfaces */
+.surface-success {
+    @apply bg-emerald-50 border border-emerald-200 rounded-[1.75rem];
+}
+
+.surface-success-elevated {
+    @apply bg-emerald-50 border border-emerald-200 rounded-[1.75rem] md:rounded-[1.75rem] shadow-xl shadow-emerald-200/40;
+}
+
+.surface-warning {
+    @apply bg-violet-50 border border-violet-100 rounded-2xl;
+}
+
+.surface-error {
+    @apply bg-rose-50 border border-rose-200 rounded-2xl;
+}
+
+/* Glass Surfaces */
+.surface-glass {
+    @apply bg-white/80 backdrop-blur-xl;
+}
+
+.surface-glass-nav {
+    @apply bg-white/80 backdrop-blur-xl rounded-full md:rounded-2xl;
+}
+
+/* Card Surfaces - Interaction States */
+.surface-card {
+    @apply rounded-3xl border border-slate-200 bg-white transition hover:border-blue-200 hover:shadow-sm;
+}
+
+.surface-card-compact {
+    @apply rounded-xl bg-slate-50 border border-slate-200;
+}
+
+/* Metric/Stat Surfaces */
+.surface-metric {
+    @apply rounded-2xl px-4 py-3;
+}
+
+.surface-metric-light {
+    @apply surface-metric bg-slate-50 text-slate-900;
+}
+
+.surface-metric-dark {
+    @apply surface-metric bg-slate-950 text-white;
+}
+
+/* Form Input Surfaces */
+.surface-input {
+    @apply rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-semibold outline-none transition focus:border-blue-500 sm:rounded-2xl sm:px-4 sm:py-3;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767px) {
+    .surface-primary-responsive {
+        @apply rounded-2xl shadow-sm;
+    }
+}
+
+@media (min-width: 768px) {
+    .surface-primary-responsive {
+        @apply rounded-[1.75rem] shadow-xl shadow-slate-200/60;
+    }
+}

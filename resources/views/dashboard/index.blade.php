@@ -13,151 +13,120 @@
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900">
+    <div class="fixed inset-0 z-30 bg-slate-950/50 opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden" data-dashboard-sidebar-overlay></div>
+
     <div class="min-h-screen lg:grid lg:grid-cols-[18rem_1fr]">
-        <aside class="sticky top-0 z-20 bg-slate-950 px-4 py-4 text-white shadow-lg shadow-slate-950/10 sm:px-5 lg:min-h-screen lg:py-6">
-            <div class="flex items-center justify-between gap-4">
-                <a href="{{ route('home') }}" class="flex items-center gap-3">
-                    <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-lg font-extrabold">S</span>
-                    <span>
-                        <span class="block text-lg font-extrabold">SkillWeave</span>
-                        <span class="block text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Learner desk</span>
-                    </span>
-                </a>
-                <a href="{{ route('onboarding') }}" class="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-slate-200 lg:hidden">Edit</a>
+        <div class="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-xl lg:hidden">
+            <div>
+                <p class="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">SkillWeave</p>
+                <p class="text-sm font-extrabold text-slate-900">Dashboard</p>
             </div>
+            <button
+                type="button"
+                class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                aria-label="Open navigation menu"
+                aria-expanded="false"
+                aria-controls="dashboard-sidebar"
+                data-dashboard-sidebar-button
+            >
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"></path>
+                </svg>
+            </button>
+        </div>
 
-            <nav class="mt-5 flex gap-2 overflow-x-auto text-sm font-bold lg:mt-10 lg:grid lg:overflow-visible">
-                <a href="#" class="rounded-2xl bg-white/10 px-4 py-3 text-white">Dashboard</a>
-                <a href="#path" class="rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Learning Path</a>
-                <a href="#resources" class="rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Resources</a>
-                <a href="{{ route('onboarding') }}" class="rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Edit Profile</a>
-            </nav>
-
-            <div class="mt-6 hidden rounded-3xl bg-white/10 p-5 lg:block">
-                <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-400">Current goal</p>
-                <p class="mt-3 text-xl font-extrabold">{{ $profile?->learning_goal ?? $user->goal ?? 'Skill growth' }}</p>
-                <p class="mt-3 text-sm leading-6 text-slate-300">{{ $dailyMinutes }} minutes per day, {{ $user->learning_pace ?? 'steady' }} pace.</p>
-            </div>
-
-            <form method="POST" action="{{ route('logout') }}" class="mt-8 hidden lg:block">
-                @csrf
-                <button class="w-full rounded-2xl border border-white/10 px-4 py-3 text-sm font-extrabold text-slate-200 hover:bg-white/10">Logout</button>
-            </form>
-        </aside>
-
+        <x-dashboard.sidebar 
+            :user="$user" 
+            :profile="$profile"
+            :currentGoal="$profile?->learning_goal ?? $user->goal ?? 'Skill growth'"
+            :dailyMinutes="$dailyMinutes ?? 45"
+            :pace="$user->learning_pace ?? 'steady'"
+        />
+        
         <main class="px-4 py-5 sm:px-6 lg:px-8">
-            <header class="flex flex-col gap-4 rounded-[1.75rem] bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
-                <div>
-                    <p class="text-sm font-extrabold uppercase tracking-[0.22em] text-blue-600">Welcome back</p>
-                    <h1 class="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{{ $user->name }}</h1>
-                    <p class="mt-2 text-sm font-semibold text-slate-500">Your path is tuned from your onboarding answers and progress signals.</p>
-                </div>
-                <div class="grid grid-cols-2 gap-3 sm:flex sm:items-center">
-                    <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                        <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-400">Pace</p>
-                        <p class="mt-1 text-sm font-extrabold">{{ $user->learning_pace ?? 'Steady' }}</p>
-                    </div>
-                    <div class="rounded-2xl bg-slate-950 px-5 py-4 text-white">
-                    <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-400">Readiness</p>
-                    <p class="mt-1 text-3xl font-extrabold">{{ $progress }}%</p>
-                    </div>
-                </div>
-            </header>
+            <x-dashboard.welcome-header
+                :userName="$user->name"
+                :pace="$user->learning_pace ?? 'Steady'"
+                :readiness="$progress ?? 0"
+                description="Your path is tuned from your onboarding answers and progress signals."
+            />
 
             @if (session('status'))
-                <div class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-700">
+                <x-ui.card padding="p-5 md:p-6" rounded="rounded-2xl md:rounded-[1.75rem]" background="bg-emerald-50" border="border-emerald-200" class="mt-5 text-sm font-semibold text-emerald-700 md:shadow-xl md:shadow-emerald-200/40">
                     {{ session('status') }}
-                </div>
+                </x-ui.card>
             @endif
 
             <section class="mt-6 grid gap-4 md:grid-cols-3">
-                <div class="rounded-[1.5rem] bg-white p-5 shadow-sm">
+                <x-ui.card padding="p-5" rounded="rounded-[1.5rem]">
                     <p class="text-sm font-bold text-slate-500">Skill level</p>
                     <p class="mt-3 text-2xl font-extrabold">{{ $profile?->skill_level ?? 'Beginner' }}</p>
-                    <div class="mt-5 h-2 rounded-full bg-slate-100">
-                        <div class="h-2 rounded-full bg-blue-600" style="width: {{ min($progress, 100) }}%"></div>
-                    </div>
-                </div>
-                <div class="rounded-[1.5rem] bg-white p-5 shadow-sm">
+                    <x-ui.progress-bar class="mt-5" :percentage="min($progress, 100)" />
+                </x-ui.card>
+
+                <x-ui.card padding="p-5" rounded="rounded-[1.5rem]">
                     <p class="text-sm font-bold text-slate-500">Focus areas</p>
                     <div class="mt-4 flex flex-wrap gap-2">
                         @foreach ($interests as $interest)
-                            <span class="rounded-full bg-blue-50 px-3 py-1 text-sm font-extrabold text-blue-700">{{ $interest }}</span>
+                            <x-ui.badge color="blue" size="sm">{{ $interest }}</x-ui.badge>
                         @endforeach
                     </div>
-                </div>
-                <div class="rounded-[1.5rem] bg-white p-5 shadow-sm">
+                </x-ui.card>
+
+                <x-ui.card padding="p-5" rounded="rounded-[1.5rem]">
                     <p class="text-sm font-bold text-slate-500">Today plan</p>
-                    <p class="mt-3 text-2xl font-extrabold">{{ $dailyMinutes }} minutes</p>
+                    <p class="mt-3 text-2xl font-extrabold">{{ $dailyMinutes ?? 45 }} minutes</p>
                     <p class="mt-2 text-sm font-semibold text-slate-500">{{ $user->learning_format ?? 'Videos + quizzes' }}</p>
-                </div>
+                </x-ui.card>
             </section>
 
             <section id="path" class="mt-6 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-                <div class="rounded-[1.75rem] bg-white p-5 shadow-sm sm:p-6">
+                <x-ui.card padding="p-5 sm:p-6" rounded="rounded-[1.75rem]">
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-sm font-extrabold uppercase tracking-[0.22em] text-blue-600">Adaptive path</p>
                             <h2 class="mt-2 text-2xl font-extrabold">Next milestones</h2>
                         </div>
-                        <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-600">Updated now</span>
+                        <x-ui.badge color="slate" size="sm" variant="light" class="shrink-0">Updated now</x-ui.badge>
                     </div>
 
                     <div class="mt-6 grid gap-4">
                         @foreach ($modules as $module)
-                            <article class="rounded-3xl border border-slate-200 p-4 transition hover:border-blue-200 hover:shadow-sm sm:p-5">
-                                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                    <div>
-                                        <p class="text-sm font-extrabold text-blue-700">{{ $module['status'] }}</p>
-                                        <h3 class="mt-1 text-xl font-extrabold">{{ $module['title'] }}</h3>
-                                        <p class="mt-2 text-sm font-semibold leading-6 text-slate-500">{{ $module['description'] }}</p>
-                                    </div>
-                                    <div class="shrink-0 rounded-2xl bg-slate-50 px-4 py-3 text-center">
-                                        <p class="text-2xl font-extrabold">{{ $module['match'] }}%</p>
-                                        <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">match</p>
-                                    </div>
-                                </div>
-                            </article>
+                            <x-dashboard.milestone-card
+                                :status="$module['status']"
+                                :title="$module['title']"
+                                :description="$module['description']"
+                                :match="$module['match']"
+                            />
                         @endforeach
                     </div>
-                </div>
+                </x-ui.card>
 
-                <div class="rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-sm sm:p-6">
-                    <p class="text-sm font-extrabold uppercase tracking-[0.22em] text-blue-200">Skill graph</p>
-                    <h2 class="mt-2 text-2xl font-extrabold">Your route</h2>
-
-                    <div class="mt-8 space-y-5">
-                        @foreach (['Foundation', 'Practice', 'Checkpoint', 'Project'] as $index => $node)
-                            <div class="flex items-center gap-4">
-                                <span class="flex h-12 w-12 items-center justify-center rounded-2xl {{ $index <= 1 ? 'bg-blue-600' : 'bg-white/10' }} text-sm font-extrabold">{{ $index + 1 }}</span>
-                                <div>
-                                    <p class="font-extrabold">{{ $node }}</p>
-                                    <p class="text-sm font-semibold text-slate-400">{{ $index <= 1 ? 'Active in your path' : 'Unlocks after quiz' }}</p>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
+                <x-dashboard.skill-graph 
+                    :nodes="['Foundation', 'Practice', 'Checkpoint', 'Project']"
+                    :completedUpTo="1"
+                />
             </section>
 
-            <section id="resources" class="mt-6 rounded-[1.75rem] bg-white p-5 shadow-sm sm:p-6">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <p class="text-sm font-extrabold uppercase tracking-[0.22em] text-blue-600">Recommended resources</p>
-                        <h2 class="mt-2 text-2xl font-extrabold">Start here today</h2>
-                    </div>
-                    <a href="{{ route('onboarding') }}" class="text-sm font-extrabold text-blue-700 hover:text-blue-800">Refine preferences</a>
-                </div>
+            <section id="resources" class="mt-6">
+                <x-ui.card padding="p-5 sm:p-6" rounded="rounded-[1.75rem]">
+                    <x-ui.section-header
+                        label="Recommended resources"
+                        title="Start here today"
+                        :action="route('onboarding')"
+                        actionLabel="Refine preferences"
+                    />
 
-                <div class="mt-6 grid gap-4 lg:grid-cols-3">
-                    @foreach ($resources as $resource)
-                        <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                            <p class="text-sm font-extrabold text-blue-700">{{ $resource['type'] }}</p>
-                            <h3 class="mt-2 text-lg font-extrabold">{{ $resource['title'] }}</h3>
-                            <p class="mt-4 text-sm font-bold text-slate-500">{{ $resource['time'] }}</p>
-                        </article>
-                    @endforeach
-                </div>
+                    <div class="mt-6 grid gap-4 lg:grid-cols-3">
+                        @foreach ($resources as $resource)
+                            <x-dashboard.resource-card
+                                :type="$resource['type']"
+                                :title="$resource['title']"
+                                :time="$resource['time']"
+                            />
+                        @endforeach
+                    </div>
+                </x-ui.card>
             </section>
 
             <form method="POST" action="{{ route('logout') }}" class="mt-6 lg:hidden">
@@ -166,5 +135,52 @@
             </form>
         </main>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('[data-dashboard-sidebar]');
+            const openButton = document.querySelector('[data-dashboard-sidebar-button]');
+            const closeButton = document.querySelector('[data-dashboard-sidebar-close]');
+            const overlay = document.querySelector('[data-dashboard-sidebar-overlay]');
+
+            if (!sidebar || !openButton || !overlay) {
+                return;
+            }
+
+            const setDrawerState = function (isOpen) {
+                sidebar.classList.toggle('translate-x-0', isOpen);
+                sidebar.classList.toggle('-translate-x-full', !isOpen);
+                overlay.classList.toggle('opacity-0', !isOpen);
+                overlay.classList.toggle('pointer-events-none', !isOpen);
+                overlay.classList.toggle('opacity-100', isOpen);
+                openButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                document.body.classList.toggle('overflow-hidden', isOpen);
+            };
+
+            setDrawerState(false);
+
+            openButton.addEventListener('click', function () {
+                const isOpen = openButton.getAttribute('aria-expanded') === 'true';
+                setDrawerState(!isOpen);
+            });
+
+            if (closeButton) {
+                closeButton.addEventListener('click', function () {
+                    setDrawerState(false);
+                });
+            }
+
+            overlay.addEventListener('click', function () {
+                setDrawerState(false);
+            });
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth >= 1024) {
+                    setDrawerState(false);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
+

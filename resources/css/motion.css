@@ -1,0 +1,181 @@
+/**
+ * Motion System
+ * Centralized animation and transition primitives
+ * Prevents per-component animation fragmentation
+ */
+
+/* Base Transitions */
+.transition-base {
+    @apply transition-all duration-300 ease-out;
+}
+
+/* Fade Animations */
+.motion-fade-in {
+    animation: fadeIn 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.motion-fade-out {
+    animation: fadeOut 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Lift/Hover Animations */
+.motion-lift {
+    @apply transition-transform duration-300 ease-out;
+}
+
+.motion-lift:hover {
+    @apply -translate-y-1;
+}
+
+.motion-lift-sm {
+    @apply transition-transform duration-300 ease-out;
+}
+
+.motion-lift-sm:hover {
+    @apply -translate-y-0.5;
+}
+
+.motion-lift-lg {
+    @apply transition-transform duration-300 ease-out;
+}
+
+.motion-lift-lg:hover {
+    @apply -translate-y-2;
+}
+
+/* Scale Animations */
+.motion-scale-subtle {
+    @apply transition-transform duration-300 ease-out;
+}
+
+.motion-scale-subtle:hover {
+    @apply scale-[1.02];
+}
+
+.motion-scale {
+    @apply transition-transform duration-300 ease-out;
+}
+
+.motion-scale:hover {
+    @apply scale-[1.05];
+}
+
+.motion-scale-down {
+    @apply transition-transform duration-300 ease-out;
+}
+
+.motion-scale-down:active {
+    @apply scale-[0.98];
+}
+
+/* Slide Animations */
+.motion-slide-up {
+    animation: slideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.motion-slide-down {
+    animation: slideDown 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+}
+
+.motion-slide-left {
+    animation: slideLeft 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideLeft {
+    from {
+        opacity: 0;
+        transform: translateX(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Focus State Animations */
+.motion-focus-ring {
+    @apply outline-3 outline-offset-2 outline-blue-500/28;
+}
+
+.motion-focus-ring:focus-visible {
+    @apply outline-3 outline-offset-2 outline-blue-500/28;
+}
+
+/* Pulse/Loading Animations */
+.motion-pulse-line {
+    animation: pulseLine 1s ease-in-out infinite;
+}
+
+@keyframes pulseLine {
+    0%, 100% {
+        opacity: 0.45;
+        transform: scaleX(0.72);
+    }
+    50% {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}
+
+.motion-pulse-dot {
+    animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulseDot {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Choice/Radio Selection Animations */
+.motion-choice-enter {
+    @apply transition-transform duration-250 cubic-bezier(0.22, 1, 0.36, 1) transition-box-shadow transition-border-color transition-background-color;
+}
+
+.motion-choice-checked {
+    @apply -translate-y-0.5 scale-[1.01];
+}
+
+/* Disable Animations for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

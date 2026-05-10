@@ -1,0 +1,92 @@
+{
+    "goalTypes": [
+        {
+            "id": "career",
+            "label": "Get a developer job",
+            "summary": "Career",
+            "goals": [
+                { "label": "Frontend Developer", "badge": "Popular", "stack": ["HTML", "CSS", "JavaScript", "React"], "durationMonths": 4, "difficulty": "Moderate" },
+                { "label": "Backend Developer", "badge": "High demand", "stack": ["PHP", "Laravel", "SQL", "APIs"], "durationMonths": 5, "difficulty": "Moderate" },
+                { "label": "Full Stack Developer", "badge": "Career path", "stack": ["JavaScript", "Laravel", "React", "Databases"], "durationMonths": 6, "difficulty": "Challenging" }
+            ]
+        },
+        {
+            "id": "technology",
+            "label": "Learn a technology",
+            "summary": "Skill",
+            "goals": [
+                { "label": "React", "badge": "Trending", "stack": ["JavaScript", "Components", "State", "Projects"], "durationMonths": 3, "difficulty": "Moderate" },
+                { "label": "Laravel", "badge": "Backend ready", "stack": ["PHP", "MVC", "Eloquent", "APIs"], "durationMonths": 3, "difficulty": "Moderate" },
+                { "label": "Node.js", "badge": "API path", "stack": ["JavaScript", "Express", "APIs", "Databases"], "durationMonths": 4, "difficulty": "Moderate" },
+                { "label": "AI/ML", "badge": "Best with Python", "stack": ["Python", "Math basics", "Data handling", "Models"], "durationMonths": 6, "difficulty": "Challenging" },
+                { "label": "Flutter", "badge": "Mobile", "stack": ["Dart", "Widgets", "State", "Mobile UI"], "durationMonths": 4, "difficulty": "Moderate" }
+            ]
+        },
+        {
+            "id": "projects",
+            "label": "Build projects",
+            "summary": "Project",
+            "goals": [
+                { "label": "Portfolio Projects", "badge": "Quick win", "stack": ["Git", "UI basics", "APIs", "Deployment"], "durationMonths": 2, "difficulty": "Light" },
+                { "label": "SaaS App", "badge": "Advanced", "stack": ["Laravel", "Auth", "Billing concepts", "Deployment"], "durationMonths": 5, "difficulty": "Challenging" }
+            ]
+        },
+        {
+            "id": "interview",
+            "label": "Placement preparation",
+            "summary": "Interview Prep",
+            "goals": [
+                { "label": "DSA Placement Prep", "badge": "Placement", "stack": ["Arrays", "Strings", "Recursion", "Mock tests"], "durationMonths": 4, "difficulty": "Challenging" },
+                { "label": "Web Developer Interviews", "badge": "Interview ready", "stack": ["JavaScript", "Projects", "APIs", "Interview drills"], "durationMonths": 3, "difficulty": "Moderate" }
+            ]
+        },
+        {
+            "id": "coding",
+            "label": "Improve coding skills",
+            "summary": "Academic",
+            "goals": [
+                { "label": "Problem Solving", "badge": "Core skill", "stack": ["Logic", "Patterns", "DSA basics", "Practice"], "durationMonths": 3, "difficulty": "Moderate" },
+                { "label": "Programming Fundamentals", "badge": "Beginner fit", "stack": ["Syntax", "Functions", "Data structures", "Mini projects"], "durationMonths": 2, "difficulty": "Light" }
+            ]
+        }
+    ],
+    "paceAdjustments": {
+        "Fast track": -1,
+        "Steady": 0,
+        "Weekend focused": 1
+    },
+    "timeAdjustments": {
+        "30": 2,
+        "45": 1,
+        "60": 0,
+        "90": -1,
+        "120": -1
+    },
+    "skillAdjustments": {
+        "Beginner": 1,
+        "Intermediate": 0,
+        "Advanced": -1
+    },
+    "interestRules": [
+        {
+            "interest": "AI",
+            "beginnerStack": ["Python", "Math basics", "Data handling", "Intro ML"],
+            "note": "Start with Python before model work."
+        },
+        {
+            "interest": "Frontend",
+            "beginnerStack": ["HTML", "CSS", "JavaScript", "React"],
+            "note": "Build UI foundations before framework depth."
+        },
+        {
+            "interest": "Backend",
+            "beginnerStack": ["PHP", "Laravel", "SQL", "REST APIs"],
+            "note": "Learn data flow and APIs early."
+        },
+        {
+            "interest": "DSA",
+            "beginnerStack": ["Logic", "Arrays", "Strings", "Recursion"],
+            "note": "Use short daily drills to build pattern memory."
+        }
+    ]
+}
