@@ -4,9 +4,11 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\Auth\SocialController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\RoadmapController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -47,7 +49,11 @@ Route::post('/email/verification-notification', function (Request $request) {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding');
     Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
+    Route::get('/assessment', [AssessmentController::class, 'show'])->name('assessment.show');
+    Route::post('/assessment', [AssessmentController::class, 'store'])->name('assessment.store');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/roadmap', [RoadmapController::class, 'show'])->name('roadmap.show');
+    Route::post('/roadmap/generate', [RoadmapController::class, 'generate'])->name('roadmap.generate');
 });
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login');

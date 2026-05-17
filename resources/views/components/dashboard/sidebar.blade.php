@@ -90,9 +90,11 @@ Notes:
     </div>
 
     <nav class="mt-5 grid gap-2 text-sm font-bold lg:mt-10 lg:grid lg:overflow-visible">
-      <a href="#" class="block w-full rounded-2xl bg-white/10 px-4 py-3 text-white">Dashboard</a>
-      <a href="#path" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Learning Path</a>
-      <a href="#resources" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Resources</a>
+      <a href="{{ route('dashboard') }}" class="block w-full rounded-2xl bg-white/10 px-4 py-3 text-white">Dashboard</a>
+      <a href="{{ route('assessment.show') }}" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Assessment</a>
+      <a href="{{ route('roadmap.show') }}" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Roadmap</a>
+      <a href="{{ route('roadmap.show') }}#path" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Learning Path</a>
+      <a href="{{ route('roadmap.show') }}#resources" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Resources</a>
       <a href="{{ route('onboarding') }}" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Edit Profile</a>
     </nav>
 

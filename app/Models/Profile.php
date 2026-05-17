@@ -10,15 +10,25 @@ class Profile extends Model
         'user_id',
         'bio',
         'education_level',
+        'career_stage',
+        'experience_years',
         'skill_level',
         'interests',
         'learning_goal',
+        'target_role',
         'preferred_language',
-        'daily_learning_time'
+        'daily_learning_time',
+        'weekly_days',
+        'preferred_study_window',
+        'motivation',
+        'project_preference',
+        'support_style',
+        'strengths',
     ];
 
     protected $casts = [
         'interests' => 'array',
+        'strengths' => 'array',
     ];
 
     public function user()

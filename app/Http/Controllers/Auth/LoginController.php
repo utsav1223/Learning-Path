@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\LearningPlanner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,6 +32,7 @@ class LoginController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            $user->load('assessmentAttempt');
 
             // email verified check
             if (is_null($user->email_verified_at)) {
@@ -43,6 +45,12 @@ class LoginController extends Controller
             // onboarding check
             if (is_null($user->onboarded_at)) {
                 return redirect()->route('onboarding');
+            }
+
+            if (!$user->assessmentAttempt || !$user->assessmentAttempt->isCompleted()) {
+                LearningPlanner::ensureAttempt($user->load('profile'));
+
+                return redirect()->route('assessment.show');
             }
 
             return redirect()->route('dashboard');

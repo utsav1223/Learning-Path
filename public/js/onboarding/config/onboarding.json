@@ -2,51 +2,292 @@
     "goalTypes": [
         {
             "id": "career",
-            "label": "Get a developer job",
-            "summary": "Career",
+            "label": "Land a role",
+            "summary": "Career outcomes",
+            "description": "Role-based paths built for hiring signals, portfolio quality, and interview readiness.",
+            "persona": "Best for learners targeting internships, entry-level jobs, or internal transitions.",
+            "outcomes": ["Portfolio alignment", "Interview coverage", "Role-specific stack"],
             "goals": [
-                { "label": "Frontend Developer", "badge": "Popular", "stack": ["HTML", "CSS", "JavaScript", "React"], "durationMonths": 4, "difficulty": "Moderate" },
-                { "label": "Backend Developer", "badge": "High demand", "stack": ["PHP", "Laravel", "SQL", "APIs"], "durationMonths": 5, "difficulty": "Moderate" },
-                { "label": "Full Stack Developer", "badge": "Career path", "stack": ["JavaScript", "Laravel", "React", "Databases"], "durationMonths": 6, "difficulty": "Challenging" }
+                {
+                    "label": "Frontend Developer",
+                    "badge": "Product teams",
+                    "stack": ["HTML", "CSS", "JavaScript", "React"],
+                    "durationMonths": 4,
+                    "difficulty": "Moderate",
+                    "projects": ["Responsive dashboard", "Design-system page", "API-driven UI"],
+                    "assessmentCoverage": ["HTML", "CSS", "JavaScript", "React", "Accessibility"],
+                    "fit": "Great if you enjoy UI polish and product-facing work."
+                },
+                {
+                    "label": "Backend Developer",
+                    "badge": "Platform teams",
+                    "stack": ["PHP", "Laravel", "SQL", "APIs"],
+                    "durationMonths": 5,
+                    "difficulty": "Moderate",
+                    "projects": ["REST API", "Auth service", "Reporting backend"],
+                    "assessmentCoverage": ["PHP", "Laravel", "Databases", "APIs", "Security"],
+                    "fit": "Great if you prefer logic, systems, and data flow."
+                },
+                {
+                    "label": "Full Stack Developer",
+                    "badge": "Versatile path",
+                    "stack": ["JavaScript", "Laravel", "React", "Databases"],
+                    "durationMonths": 6,
+                    "difficulty": "Challenging",
+                    "projects": ["SaaS dashboard", "Admin portal", "Realtime CRUD app"],
+                    "assessmentCoverage": ["Frontend", "Backend", "Security", "Deployment"],
+                    "fit": "Best when you want ownership across both UI and backend."
+                },
+                {
+                    "label": "Mobile App Developer",
+                    "badge": "App teams",
+                    "stack": ["Dart", "Flutter", "State", "Mobile UI"],
+                    "durationMonths": 5,
+                    "difficulty": "Moderate",
+                    "projects": ["Task app", "Booking flow", "Offline-first utility"],
+                    "assessmentCoverage": ["Flutter", "State", "UX", "API handling"],
+                    "fit": "Strong choice if you like app UX and polished interactions."
+                },
+                {
+                    "label": "Data Analyst",
+                    "badge": "Business data",
+                    "stack": ["SQL", "Spreadsheets", "Python", "Dashboards"],
+                    "durationMonths": 4,
+                    "difficulty": "Moderate",
+                    "projects": ["Sales dashboard", "Cohort report", "Data-cleaning notebook"],
+                    "assessmentCoverage": ["SQL", "Data cleaning", "Visualization", "Reasoning"],
+                    "fit": "Great for people who enjoy patterns, reporting, and decision support."
+                }
             ]
         },
         {
             "id": "technology",
-            "label": "Learn a technology",
-            "summary": "Skill",
+            "label": "Master a technology",
+            "summary": "Technology depth",
+            "description": "Focused tracks for going deeper into one tool, framework, or technical domain.",
+            "persona": "Best for learners who already know the direction and want sharper execution.",
+            "outcomes": ["Deep framework fluency", "Focused practice", "Technology-specific assessment"],
             "goals": [
-                { "label": "React", "badge": "Trending", "stack": ["JavaScript", "Components", "State", "Projects"], "durationMonths": 3, "difficulty": "Moderate" },
-                { "label": "Laravel", "badge": "Backend ready", "stack": ["PHP", "MVC", "Eloquent", "APIs"], "durationMonths": 3, "difficulty": "Moderate" },
-                { "label": "Node.js", "badge": "API path", "stack": ["JavaScript", "Express", "APIs", "Databases"], "durationMonths": 4, "difficulty": "Moderate" },
-                { "label": "AI/ML", "badge": "Best with Python", "stack": ["Python", "Math basics", "Data handling", "Models"], "durationMonths": 6, "difficulty": "Challenging" },
-                { "label": "Flutter", "badge": "Mobile", "stack": ["Dart", "Widgets", "State", "Mobile UI"], "durationMonths": 4, "difficulty": "Moderate" }
+                {
+                    "label": "React",
+                    "badge": "Frontend depth",
+                    "stack": ["JavaScript", "Components", "State", "Projects"],
+                    "durationMonths": 3,
+                    "difficulty": "Moderate",
+                    "projects": ["Component library", "Analytics UI", "SPA dashboard"],
+                    "assessmentCoverage": ["Components", "State", "Rendering", "Accessibility"],
+                    "fit": "Best if you already know basic JS and want serious UI fluency."
+                },
+                {
+                    "label": "Laravel",
+                    "badge": "Backend depth",
+                    "stack": ["PHP", "MVC", "Eloquent", "APIs"],
+                    "durationMonths": 3,
+                    "difficulty": "Moderate",
+                    "projects": ["Course API", "Admin panel", "Queue-powered workflow"],
+                    "assessmentCoverage": ["Routing", "Eloquent", "Validation", "Auth"],
+                    "fit": "Best for pragmatic backend development with fast delivery."
+                },
+                {
+                    "label": "Node.js",
+                    "badge": "Service APIs",
+                    "stack": ["JavaScript", "Express", "APIs", "Databases"],
+                    "durationMonths": 4,
+                    "difficulty": "Moderate",
+                    "projects": ["Service API", "Webhook handler", "Realtime backend"],
+                    "assessmentCoverage": ["Express", "Async flows", "APIs", "Persistence"],
+                    "fit": "Good when you want JS across both frontend and backend."
+                },
+                {
+                    "label": "Flutter",
+                    "badge": "Mobile apps",
+                    "stack": ["Dart", "Widgets", "State", "Mobile UI"],
+                    "durationMonths": 4,
+                    "difficulty": "Moderate",
+                    "projects": ["Finance tracker", "Habit app", "Service marketplace UI"],
+                    "assessmentCoverage": ["Widgets", "State", "Forms", "Network UX"],
+                    "fit": "Great for building polished apps with one codebase."
+                },
+                {
+                    "label": "AI and Machine Learning",
+                    "badge": "Model path",
+                    "stack": ["Python", "Data handling", "Machine Learning", "Models"],
+                    "durationMonths": 6,
+                    "difficulty": "Challenging",
+                    "projects": ["Classifier notebook", "Prompt workflow", "Model dashboard"],
+                    "assessmentCoverage": ["Python", "Data prep", "Evaluation", "ML basics"],
+                    "fit": "Strong fit if you like experimentation and data-heavy workflows."
+                },
+                {
+                    "label": "DevOps Foundations",
+                    "badge": "Infra path",
+                    "stack": ["Linux", "GitHub Actions", "Docker", "Cloud basics"],
+                    "durationMonths": 4,
+                    "difficulty": "Challenging",
+                    "projects": ["CI pipeline", "Dockerized app", "Cloud deploy flow"],
+                    "assessmentCoverage": ["CLI", "CI/CD", "Containers", "Deployment"],
+                    "fit": "Best for automation-minded builders who care about delivery reliability."
+                },
+                {
+                    "label": "Data Science",
+                    "badge": "Insight path",
+                    "stack": ["Python", "Pandas", "Visualization", "Statistics"],
+                    "durationMonths": 5,
+                    "difficulty": "Moderate",
+                    "projects": ["Exploratory notebook", "Forecast report", "Visualization story"],
+                    "assessmentCoverage": ["Pandas", "Cleaning", "Charts", "Interpretation"],
+                    "fit": "Ideal if you like analysis, stories in data, and decision support."
+                }
             ]
         },
         {
             "id": "projects",
-            "label": "Build projects",
-            "summary": "Project",
+            "label": "Build stronger projects",
+            "summary": "Portfolio growth",
+            "description": "Project-first tracks that turn learning into visible proof of skill.",
+            "persona": "Best for learners who need stronger proof-of-work and real deliverables.",
+            "outcomes": ["Production-style projects", "Case-study material", "Applied assessment coverage"],
             "goals": [
-                { "label": "Portfolio Projects", "badge": "Quick win", "stack": ["Git", "UI basics", "APIs", "Deployment"], "durationMonths": 2, "difficulty": "Light" },
-                { "label": "SaaS App", "badge": "Advanced", "stack": ["Laravel", "Auth", "Billing concepts", "Deployment"], "durationMonths": 5, "difficulty": "Challenging" }
+                {
+                    "label": "Portfolio Projects",
+                    "badge": "Quick portfolio win",
+                    "stack": ["Git", "UI basics", "APIs", "Deployment"],
+                    "durationMonths": 2,
+                    "difficulty": "Light",
+                    "projects": ["Landing page", "Mini SaaS clone", "Interactive portfolio"],
+                    "assessmentCoverage": ["Frontend", "API basics", "Deployment"],
+                    "fit": "Best when you need visible work quickly."
+                },
+                {
+                    "label": "SaaS Dashboard",
+                    "badge": "Product build",
+                    "stack": ["Laravel", "Auth", "Charts", "Deployment"],
+                    "durationMonths": 5,
+                    "difficulty": "Challenging",
+                    "projects": ["Analytics dashboard", "Team workspace", "Role-based admin"],
+                    "assessmentCoverage": ["Auth", "Data modeling", "Charts", "UX decisions"],
+                    "fit": "Great for product-minded learners building job-ready proof."
+                },
+                {
+                    "label": "AI Product Prototype",
+                    "badge": "Applied AI",
+                    "stack": ["Python", "Prompt design", "APIs", "Deployment"],
+                    "durationMonths": 5,
+                    "difficulty": "Challenging",
+                    "projects": ["Copilot workflow", "Summarization tool", "Chat assistant UI"],
+                    "assessmentCoverage": ["Prompting", "APIs", "Data flow", "Evaluation"],
+                    "fit": "Good if you want to ship AI-flavored product work, not just notebooks."
+                },
+                {
+                    "label": "Data Visualization Portfolio",
+                    "badge": "Analyst proof",
+                    "stack": ["SQL", "Python", "Charts", "Storytelling"],
+                    "durationMonths": 4,
+                    "difficulty": "Moderate",
+                    "projects": ["Executive dashboard", "KPI story", "Public dataset analysis"],
+                    "assessmentCoverage": ["SQL", "Visualization", "Interpretation", "Presentation"],
+                    "fit": "Best for analytical learners who need compelling showcase work."
+                }
             ]
         },
         {
             "id": "interview",
-            "label": "Placement preparation",
-            "summary": "Interview Prep",
+            "label": "Prepare for interviews",
+            "summary": "Readiness and drills",
+            "description": "Drill-heavy tracks aimed at confidence under pressure and repeatable recall.",
+            "persona": "Best for learners who already know the material but need sharper performance.",
+            "outcomes": ["Mock-test confidence", "Weak-area repair", "Targeted readiness graph"],
             "goals": [
-                { "label": "DSA Placement Prep", "badge": "Placement", "stack": ["Arrays", "Strings", "Recursion", "Mock tests"], "durationMonths": 4, "difficulty": "Challenging" },
-                { "label": "Web Developer Interviews", "badge": "Interview ready", "stack": ["JavaScript", "Projects", "APIs", "Interview drills"], "durationMonths": 3, "difficulty": "Moderate" }
+                {
+                    "label": "DSA Placement Prep",
+                    "badge": "High frequency",
+                    "stack": ["Arrays", "Strings", "Recursion", "Mock tests"],
+                    "durationMonths": 4,
+                    "difficulty": "Challenging",
+                    "projects": ["Pattern tracker", "Timed drills", "Mock interview review"],
+                    "assessmentCoverage": ["Arrays", "Complexity", "Recursion", "Searching"],
+                    "fit": "Best for campus placements and coding rounds."
+                },
+                {
+                    "label": "Web Developer Interviews",
+                    "badge": "Role-based prep",
+                    "stack": ["JavaScript", "Projects", "APIs", "Interview drills"],
+                    "durationMonths": 3,
+                    "difficulty": "Moderate",
+                    "projects": ["Question bank", "Project storytelling", "System walkthroughs"],
+                    "assessmentCoverage": ["Frontend", "Backend", "APIs", "Debugging"],
+                    "fit": "Strong choice for web role interview loops."
+                },
+                {
+                    "label": "System Design Basics",
+                    "badge": "Growth step",
+                    "stack": ["Architecture", "Caching", "Databases", "Tradeoffs"],
+                    "durationMonths": 4,
+                    "difficulty": "Challenging",
+                    "projects": ["Design notes", "Scaling case studies", "Tradeoff maps"],
+                    "assessmentCoverage": ["Architecture", "Caching", "Databases", "Reliability"],
+                    "fit": "Useful once you want to talk beyond CRUD implementation."
+                },
+                {
+                    "label": "Data Case Interviews",
+                    "badge": "Analytics prep",
+                    "stack": ["SQL", "Metrics", "Storytelling", "Business reasoning"],
+                    "durationMonths": 3,
+                    "difficulty": "Moderate",
+                    "projects": ["Metric trees", "Case writeups", "Analyst mock rounds"],
+                    "assessmentCoverage": ["SQL", "Metrics", "Interpretation", "Reasoning"],
+                    "fit": "Best for analyst and data-centric interview loops."
+                }
             ]
         },
         {
-            "id": "coding",
-            "label": "Improve coding skills",
-            "summary": "Academic",
+            "id": "foundation",
+            "label": "Build core fundamentals",
+            "summary": "Strong basics",
+            "description": "Safer, lower-friction tracks for learners who need confident foundations first.",
+            "persona": "Best for beginners, returning learners, or anyone who wants less overwhelm.",
+            "outcomes": ["Confidence building", "Foundational assessment", "Shorter learning loops"],
             "goals": [
-                { "label": "Problem Solving", "badge": "Core skill", "stack": ["Logic", "Patterns", "DSA basics", "Practice"], "durationMonths": 3, "difficulty": "Moderate" },
-                { "label": "Programming Fundamentals", "badge": "Beginner fit", "stack": ["Syntax", "Functions", "Data structures", "Mini projects"], "durationMonths": 2, "difficulty": "Light" }
+                {
+                    "label": "Programming Fundamentals",
+                    "badge": "Beginner fit",
+                    "stack": ["Syntax", "Functions", "Data structures", "Mini projects"],
+                    "durationMonths": 2,
+                    "difficulty": "Light",
+                    "projects": ["CLI exercises", "Mini logic apps", "Function drills"],
+                    "assessmentCoverage": ["Syntax", "Functions", "Arrays", "Problem solving"],
+                    "fit": "The most beginner-friendly entry point."
+                },
+                {
+                    "label": "Problem Solving",
+                    "badge": "Core skill",
+                    "stack": ["Logic", "Patterns", "DSA basics", "Practice"],
+                    "durationMonths": 3,
+                    "difficulty": "Moderate",
+                    "projects": ["Pattern sheets", "Daily drills", "Edge-case review"],
+                    "assessmentCoverage": ["Logic", "Patterns", "Complexity", "Recursion"],
+                    "fit": "Best if you want stronger thinking before specialization."
+                },
+                {
+                    "label": "Web Foundations",
+                    "badge": "Frontend base",
+                    "stack": ["HTML", "CSS", "JavaScript", "Accessibility"],
+                    "durationMonths": 3,
+                    "difficulty": "Moderate",
+                    "projects": ["Responsive page", "Accessible form", "JS interaction demo"],
+                    "assessmentCoverage": ["HTML", "CSS", "JavaScript", "Accessibility"],
+                    "fit": "Ideal starting point for future frontend or full stack work."
+                },
+                {
+                    "label": "Data Literacy Foundations",
+                    "badge": "Data base",
+                    "stack": ["Spreadsheets", "SQL basics", "Charts", "Reasoning"],
+                    "durationMonths": 3,
+                    "difficulty": "Light",
+                    "projects": ["Basic report", "Simple dashboard", "Data cleanup task"],
+                    "assessmentCoverage": ["Tables", "Filters", "SQL basics", "Charts"],
+                    "fit": "Good for learners moving into analytics from non-technical backgrounds."
+                }
             ]
         }
     ],
@@ -60,7 +301,8 @@
         "45": 1,
         "60": 0,
         "90": -1,
-        "120": -1
+        "120": -1,
+        "180": -2
     },
     "skillAdjustments": {
         "Beginner": 1,
@@ -70,8 +312,8 @@
     "interestRules": [
         {
             "interest": "AI",
-            "beginnerStack": ["Python", "Math basics", "Data handling", "Intro ML"],
-            "note": "Start with Python before model work."
+            "beginnerStack": ["Python", "Data handling", "Prompting", "Intro ML"],
+            "note": "Start with Python and data intuition before model complexity."
         },
         {
             "interest": "Frontend",
@@ -86,7 +328,22 @@
         {
             "interest": "DSA",
             "beginnerStack": ["Logic", "Arrays", "Strings", "Recursion"],
-            "note": "Use short daily drills to build pattern memory."
+            "note": "Short daily drills will help pattern recognition stick."
+        },
+        {
+            "interest": "Mobile",
+            "beginnerStack": ["Dart", "Widgets", "State", "API basics"],
+            "note": "Mobile progress is faster when you combine UI building with state basics."
+        },
+        {
+            "interest": "Data Science",
+            "beginnerStack": ["Python", "Pandas", "Visualization", "Statistics basics"],
+            "note": "Learn analysis and chart-reading before heavier modeling."
+        },
+        {
+            "interest": "DevOps",
+            "beginnerStack": ["CLI", "Git", "Docker basics", "Deployment"],
+            "note": "Delivery reliability gets easier once environment basics are solid."
         }
     ]
 }

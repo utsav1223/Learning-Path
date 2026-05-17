@@ -1,36 +1,37 @@
-export const storageKey = 'skillweave_onboarding';
+export const storageKey = 'skillweave_onboarding_v2';
 
 export const stepTips = [
-    'Choose the outcome first. The next options adapt to it.',
-    'Choose your current level. You can speed up later.',
-    'Pick at least one area for the first dashboard.',
-    'Set a rhythm that fits a normal week.',
+    'Start with the destination so recommendations can branch intelligently.',
+    'We calibrate depth using your current level and real experience.',
+    'Signal both interest and strengths so the dashboard can separate confidence from ambition.',
+    'A realistic study rhythm beats an aggressive plan you cannot keep.',
+    'Learning preferences shape the way projects, reviews, and checkpoints are delivered.',
+    'Review the profile before the one-time assessment is generated.',
 ];
 
 export const selectedValues = (inputs) => inputs
     .filter((input) => input.checked)
     .map((input) => input.value);
 
-const hasRepeatedCharacters = (value) => /(.)\1{3,}/i.test(value.replace(/\s+/g, ''));
 const hasLetters = (value) => /[a-z]/i.test(value);
-const hasEnoughWords = (value) => value.trim().split(/\s+/).filter(Boolean).length >= 2;
-
-export const isMeaningfulText = (value) => {
-    const text = value.trim();
-
-    return text.length >= 5
-        && hasLetters(text)
-        && hasEnoughWords(text)
-        && !/^\d+$/.test(text)
-        && !hasRepeatedCharacters(text);
-};
 
 export const validateOnboarding = (fields) => ({
     goalTypeReady: fields.goalType.some((input) => input.checked),
-    goalReady: fields.goalOption.some((input) => input.checked) || isMeaningfulText(fields.goal.value),
-    languageReady: fields.language.value.trim().length >= 2 && hasLetters(fields.language.value),
+    goalReady: fields.goalOption.some((input) => input.checked) || fields.goal.value.trim().length >= 3,
+    targetRoleReady: fields.targetRole.value.trim().length >= 3,
     skillReady: fields.skill.some((input) => input.checked),
+    experienceReady: Number(fields.experienceYears.value) >= 0,
     interestsReady: selectedValues(fields.interests).length > 0,
+    strengthsReady: selectedValues(fields.strengths).length > 0,
+    languageReady: fields.language.value.trim().length >= 2 && hasLetters(fields.language.value),
+    routineReady: Number(fields.dailyTime.value) >= 15
+        && Number(fields.weeklyDays.value) >= 1
+        && fields.studyWindow.value.trim().length >= 2,
+    preferenceReady: fields.format.value.trim().length >= 2
+        && fields.pace.value.trim().length >= 2
+        && fields.projectPreference.value.trim().length >= 2
+        && fields.supportStyle.value.trim().length >= 2,
+    motivationReady: fields.motivation.value.trim().length >= 3,
 });
 
 const findGoal = (config, goal) => config.goalTypes
@@ -40,73 +41,40 @@ const findGoal = (config, goal) => config.goalTypes
 const findInterestRule = (config, interests) => config.interestRules
     .find((rule) => interests.includes(rule.interest));
 
-/**
- * @typedef {Object} GoalOption
- * @property {string} label
- * @property {string[]} stack
- * @property {number} durationMonths
- * @property {string} difficulty
- */
-
-/**
- * @typedef {Object} OnboardingConfig
- * @property {Array<{id: string, goals: GoalOption[]}>} goalTypes
- * @property {Array<{interest: string, beginnerStack: string[], note: string}>} interestRules
- * @property {Record<string, number>} skillAdjustments
- * @property {Record<string, number>} timeAdjustments
- * @property {Record<string, number>} paceAdjustments
- */
-
-/**
- * @typedef {Object} OnboardingProfile
- * @property {string} goalType
- * @property {string} goal
- * @property {string} skill
- * @property {string[]} interests
- * @property {string} time
- * @property {string} pace
- */
-
 export const buildProfile = (fields, form) => ({
     goalType: form.querySelector('[name="goal_type"]:checked')?.value || '',
     goal: fields.goal.value.trim(),
+    targetRole: fields.targetRole.value.trim(),
     skill: form.querySelector('[name="skill_level"]:checked')?.value || 'Beginner',
+    experienceYears: fields.experienceYears.value || '0',
     interests: selectedValues(fields.interests),
-    time: form.querySelector('[data-summary="time"]').value || '45',
-    pace: form.querySelector('[data-summary="pace"]').value || 'Steady',
+    strengths: selectedValues(fields.strengths),
+    time: fields.dailyTime.value || '45',
+    weeklyDays: fields.weeklyDays.value || '5',
+    studyWindow: fields.studyWindow.value || 'Evening',
+    pace: fields.pace.value || 'Steady',
+    format: fields.format.value || 'Projects first',
+    motivation: fields.motivation.value || '',
 });
 
-/**
- * Generates a personalized roadmap recommendation from config and user choices.
- * @param {OnboardingConfig} config
- * @param {OnboardingProfile} profile
- * @returns {{duration: string, stack: string, workload: string, difficulty: string, note: string}}
- */
 export const generateRecommendation = (config, profile) => {
     const selectedGoal = findGoal(config, profile.goal);
     const interestRule = findInterestRule(config, profile.interests);
     const baseDuration = selectedGoal?.durationMonths || 3;
-    const adjustment = (config.skillAdjustments[profile.skill] || 0)
+    const durationShift = (config.skillAdjustments[profile.skill] || 0)
         + (config.timeAdjustments[profile.time] || 0)
         + (config.paceAdjustments[profile.pace] || 0);
-    const duration = Math.max(1, baseDuration + adjustment);
+    const duration = Math.max(1, baseDuration + durationShift);
     const durationText = duration === 1 ? '1 month' : `${duration} months`;
     const stack = profile.skill === 'Beginner' && interestRule
         ? interestRule.beginnerStack
         : (selectedGoal?.stack || ['Foundations', 'Practice', 'Projects']);
     const workload = Number(profile.time) <= 30
-        ? 'Light daily plan'
-        : (profile.pace === 'Fast track' ? 'High-intensity plan' : 'Steady weekly plan');
-    const difficulty = selectedGoal?.difficulty || (profile.skill === 'Beginner' ? 'Light' : 'Moderate');
-    let note = interestRule?.note || 'Roadmap starts with the shortest useful foundation path.';
-
-    if (profile.skill === 'Advanced') {
-        note = 'Skipping basics and prioritizing projects, reviews, and checkpoints.';
-    } else if (profile.skill === 'Beginner' && Number(profile.time) <= 30) {
-        note = interestRule?.note
-            ? `${interestRule.note} Workload is reduced for 30-minute sessions.`
-            : 'Starting with short fundamentals and lighter daily practice.';
-    }
+        ? 'Light daily load'
+        : (profile.pace === 'Fast track' ? 'High-output sprint' : 'Balanced weekly rhythm');
+    const difficulty = selectedGoal?.difficulty || (profile.skill === 'Advanced' ? 'High' : 'Moderate');
+    const note = interestRule?.note
+        || 'Your plan starts with the shortest route to useful momentum.';
 
     return {
         duration: durationText,
