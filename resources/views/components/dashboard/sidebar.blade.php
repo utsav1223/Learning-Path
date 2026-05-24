@@ -118,11 +118,6 @@ Notes:
            class="{{ request()->routeIs('settings.*') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }} flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
             User Settings
         </a>
-
-        <a href="{{ route('settings.show') }}#password"
-           class="text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
-            Change Password
-        </a>
       </nav>
     </div>
 

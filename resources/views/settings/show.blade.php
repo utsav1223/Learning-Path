@@ -41,14 +41,15 @@
             :pace="$user->learning_pace ?? 'Steady'"
         />
 
-        <main class="px-4 py-5 sm:px-6 lg:px-8">
-            <div class="mx-auto max-w-6xl">
+        <main class="px-4 py-5 sm:px-6 lg:col-start-2 lg:px-8">
+            <div class="mx-auto max-w-[1300px]">
                 <section class="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
                     <div class="grid gap-0 lg:grid-cols-[1fr_20rem]">
                         <div class="p-5 sm:p-6 lg:p-8">
                             <p class="text-xs font-extrabold uppercase tracking-[0.24em] text-blue-600 dark:text-blue-400">Account center</p>
-                            <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Manage your profile and security</h1>
-                            <p class="mt-4 max-w-3xl text-sm font-semibold leading-6 text-slate-500 dark:text-slate-300">Update your account name, jump back into your learning profile, change your password, and review the login details connected to your SkillWeave account.</p>
+                            <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Manage your account and display</h1>
+                            <h2 class="mt-2 text-lg font-extrabold text-slate-700 dark:text-slate-200">Manage your profile and security</h2>
+                            <p class="mt-4 max-w-3xl text-sm font-semibold leading-6 text-slate-500 dark:text-slate-300">Update your account name, manage your learning profile, control the dashboard theme, and change security settings from one responsive page.</p>
                         </div>
                         <div class="border-t border-slate-200 bg-slate-950 p-5 text-white dark:border-slate-800 lg:border-l lg:border-t-0">
                             <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-400">Signed in as</p>
@@ -67,7 +68,7 @@
                     </div>
                 @endif
 
-                <section class="mt-5 grid gap-5 xl:grid-cols-[1fr_0.9fr]">
+                <section class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.8fr)]">
                     <div class="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
                         <p class="text-xs font-extrabold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">Account details</p>
                         <h2 class="mt-2 text-2xl font-extrabold">Basic information</h2>
@@ -91,6 +92,25 @@
 
                             <button class="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-blue-700 sm:w-auto">Save account details</button>
                         </form>
+                    </div>
+
+                    <div class="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+                        <p class="text-xs font-extrabold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">Appearance</p>
+                        <h2 class="mt-2 text-2xl font-extrabold">Theme</h2>
+                        <p class="mt-3 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-300">Choose the look that feels best for repeated study sessions.</p>
+                        <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                            <button type="button" data-settings-theme="light" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-left transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-950 dark:hover:border-blue-500">
+                                <span class="block text-sm font-extrabold text-slate-900 dark:text-slate-100">Light</span>
+                                <span class="mt-1 block text-xs font-bold text-slate-500 dark:text-slate-400">Bright, clean workspace</span>
+                            </button>
+                            <button type="button" data-settings-theme="dark" class="rounded-xl border border-slate-200 bg-slate-950 px-4 py-4 text-left text-white transition hover:border-blue-400 dark:border-slate-700">
+                                <span class="block text-sm font-extrabold">Dark</span>
+                                <span class="mt-1 block text-xs font-bold text-slate-400">Lower glare dashboard</span>
+                            </button>
+                        </div>
+                        <div class="mt-4 hidden rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-extrabold text-emerald-700 dark:border-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300" data-theme-status>
+                            Theme updated.
+                        </div>
                     </div>
 
                     <div class="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
@@ -119,7 +139,7 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('settings.password.update') }}" class="mt-6 grid gap-5 lg:grid-cols-3">
+                    <form method="POST" action="{{ route('settings.password.update') }}" class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                         @csrf
                         @method('PATCH')
 
@@ -144,7 +164,7 @@
                             <input type="password" name="password_confirmation" autocomplete="new-password" required class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:focus:bg-slate-900">
                         </label>
 
-                        <div class="lg:col-span-3">
+                        <div class="md:col-span-2 xl:col-span-3">
                             <button class="inline-flex w-full items-center justify-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500 sm:w-auto">Update password</button>
                         </div>
                     </form>
@@ -159,6 +179,31 @@
             const openButton = document.querySelector('[data-dashboard-sidebar-button]');
             const closeButton = document.querySelector('[data-dashboard-sidebar-close]');
             const overlay = document.querySelector('[data-dashboard-sidebar-overlay]');
+            const themeButtons = Array.from(document.querySelectorAll('[data-settings-theme]'));
+            const themeStatus = document.querySelector('[data-theme-status]');
+
+            const markTheme = () => {
+                const currentTheme = localStorage.getItem('skillweave-theme') || 'light';
+                themeButtons.forEach((button) => {
+                    const isActive = button.dataset.settingsTheme === currentTheme;
+                    button.classList.toggle('ring-2', isActive);
+                    button.classList.toggle('ring-blue-500', isActive);
+                    button.classList.toggle('border-blue-500', isActive);
+                });
+            };
+
+            themeButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const nextTheme = button.dataset.settingsTheme;
+                    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+                    localStorage.setItem('skillweave-theme', nextTheme);
+                    markTheme();
+                    themeStatus?.classList.remove('hidden');
+                    window.setTimeout(() => themeStatus?.classList.add('hidden'), 1800);
+                });
+            });
+
+            markTheme();
 
             if (!sidebar || !openButton || !overlay) return;
 

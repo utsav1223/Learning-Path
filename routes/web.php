@@ -68,7 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('users.show');
     Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');

@@ -74,10 +74,6 @@
                                     <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Welcome back, {{ $user->name }}</h1>
                                     <p class="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-500 dark:text-slate-300">{{ $analysisSummary }}</p>
                                 </div>
-                                <div class="flex flex-wrap gap-3">
-                                    <button type="button" data-theme-toggle class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">Theme</button>
-                                    <a href="{{ route('onboarding') }}" class="rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-blue-500 dark:hover:bg-blue-950/30">Edit profile</a>
-                                </div>
                             </div>
 
                             <div class="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -464,14 +460,6 @@
             const openButton = document.querySelector('[data-dashboard-sidebar-button]');
             const closeButton = document.querySelector('[data-dashboard-sidebar-close]');
             const overlay = document.querySelector('[data-dashboard-sidebar-overlay]');
-            const themeToggle = document.querySelector('[data-theme-toggle]');
-
-            themeToggle?.addEventListener('click', function () {
-                const nextTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-                document.documentElement.classList.toggle('dark', nextTheme === 'dark');
-                localStorage.setItem('skillweave-theme', nextTheme);
-            });
-
             const dashboardTodoChecks = Array.from(document.querySelectorAll('[data-dashboard-todo-check]'));
             const dashboardMarkAll = document.querySelector('[data-dashboard-mark-all]');
             const dashboardClearTodos = document.querySelector('[data-dashboard-clear-todos]');
