@@ -39,7 +39,7 @@ class AssessmentFlowTest extends TestCase
             'bio' => 'I can build static pages and want to get stronger with JavaScript.',
         ]);
 
-        $response->assertRedirect(route('assessment.show'));
+        $response->assertRedirect(route('dashboard'));
         $this->assertDatabaseHas('profiles', [
             'user_id' => $user->id,
             'learning_goal' => 'Frontend Developer',
@@ -49,6 +49,55 @@ class AssessmentFlowTest extends TestCase
         $attempt = $user->fresh()->assessmentAttempt;
         $this->assertNotNull($attempt);
         $this->assertCount(25, $attempt->question_ids);
+
+        $this->actingAs($user)->get('/dashboard')
+            ->assertOk()
+            ->assertSee('First complete assessment, then you can generate roadmap.');
+    }
+
+    public function test_assessment_questions_follow_the_onboarding_goal_before_global_fallback(): void
+    {
+        $user = User::factory()->create([
+            'goal' => 'Programming Fundamentals',
+            'learning_format' => 'Projects first',
+            'learning_pace' => 'Steady',
+            'onboarded_at' => now(),
+        ]);
+
+        Profile::create([
+            'user_id' => $user->id,
+            'bio' => 'New learner who needs basics and short exercises.',
+            'education_level' => 'College',
+            'career_stage' => 'Student',
+            'experience_years' => 0,
+            'skill_level' => 'Beginner',
+            'interests' => ['DSA', 'Projects'],
+            'learning_goal' => 'Programming Fundamentals',
+            'target_role' => 'Junior developer',
+            'preferred_language' => 'English',
+            'daily_learning_time' => 45,
+            'weekly_days' => 5,
+            'preferred_study_window' => 'Evening',
+            'motivation' => 'Build strong basics',
+            'project_preference' => 'Mini logic apps',
+            'support_style' => 'Guided checkpoints',
+            'strengths' => ['Consistency'],
+        ]);
+
+        $this->seedTechnologyQuestions(['DSA', 'Projects', 'Frontend', 'Backend'], 10);
+        $this->seedTechnologyQuestions(['AI/ML', 'Data Science', 'Mobile', 'DevOps'], 10);
+
+        $attempt = LearningPlanner::ensureAttempt($user->fresh('profile'));
+        $technologies = AssessmentQuestion::query()
+            ->whereIn('id', $attempt->question_ids)
+            ->pluck('technology')
+            ->unique()
+            ->values()
+            ->all();
+
+        $this->assertCount(25, $attempt->question_ids);
+        $this->assertSame(['DSA', 'Projects'], LearningPlanner::recommendedTechnologiesForUser($user->fresh('profile')));
+        $this->assertEmpty(array_diff($technologies, ['DSA', 'Projects', 'Frontend', 'Backend']));
     }
 
     public function test_assessment_submission_stores_answers_and_locks_the_result(): void
@@ -120,6 +169,13 @@ class AssessmentFlowTest extends TestCase
             ->assertOk()
             ->assertSee('Generate your detailed learning path');
 
+        $this->actingAs($user)->get('/assessment/review')
+            ->assertOk()
+            ->assertSee('Wrong answers to repair')
+            ->assertSee('Your answer')
+            ->assertSee('Correct answer')
+            ->assertSee('Needs review');
+
         $this->actingAs($user)->get('/roadmap')
             ->assertOk()
             ->assertSee('Detailed study timeline');
@@ -187,6 +243,24 @@ class AssessmentFlowTest extends TestCase
                 'explanation' => 'Because this is the seeded correct answer.',
                 'is_active' => true,
             ]);
+        });
+    }
+
+    private function seedTechnologyQuestions(array $technologies, int $countPerTechnology)
+    {
+        return collect($technologies)->flatMap(function (string $technology) use ($countPerTechnology) {
+            return collect(range(1, $countPerTechnology))->map(function ($number) use ($technology) {
+                return AssessmentQuestion::create([
+                    'technology' => $technology,
+                    'topic' => "{$technology} Topic {$number}",
+                    'difficulty' => 'Beginner',
+                    'question' => "{$technology} question {$number}?",
+                    'options' => ['Correct', "Option {$number}A", "Option {$number}B", "Option {$number}C"],
+                    'correct_answer' => 'Correct',
+                    'explanation' => 'Because this is the seeded correct answer.',
+                    'is_active' => true,
+                ]);
+            });
         });
     }
 }

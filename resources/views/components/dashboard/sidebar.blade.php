@@ -63,7 +63,7 @@ Notes:
 
 <aside
   id="dashboard-sidebar"
-  class="fixed inset-y-0 left-0 z-40 w-[82vw] max-w-sm -translate-x-full overflow-y-auto bg-slate-950 px-4 py-4 text-white shadow-2xl shadow-slate-950/30 transition-transform duration-300 ease-out sm:w-[22rem] sm:px-5 lg:sticky lg:top-0 lg:z-20 lg:w-auto lg:max-w-none lg:translate-x-0 lg:overflow-visible lg:shadow-lg lg:shadow-slate-950/10 lg:min-h-screen lg:py-6"
+  class="fixed inset-y-0 left-0 z-40 w-[82vw] max-w-sm -translate-x-full overflow-y-auto bg-slate-950 px-4 py-4 text-white shadow-2xl shadow-slate-950/30 transition-transform duration-300 ease-out sm:w-[22rem] sm:px-5 lg:fixed lg:top-0 lg:z-20 lg:w-[19rem] lg:max-w-none lg:translate-x-0 lg:shadow-lg lg:shadow-slate-950/10 lg:min-h-screen lg:py-6"
   data-dashboard-sidebar
 >
   <div class="flex items-center justify-between gap-4 lg:justify-start">
@@ -104,22 +104,27 @@ Notes:
          class="{{ request()->routeIs('roadmap.*') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }} flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
           Roadmap
       </a>
-
-      <a href="{{ route('roadmap.show') }}#path"
-         class="text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
-          Learning Path
-      </a>
-
-      <a href="{{ route('roadmap.show') }}#resources"
-         class="text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
-          Resources
-      </a>
-
-      <a href="{{ route('onboarding') }}"
-         class="{{ request()->routeIs('onboarding') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }} flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
-          Edit Profile
-      </a>
     </nav>
+
+    <div class="mt-6">
+      <p class="px-4 text-xs font-extrabold uppercase tracking-[0.2em] text-slate-500">Account</p>
+      <nav class="mt-3 grid gap-2 text-sm font-bold">
+        <a href="{{ route('onboarding') }}"
+           class="{{ request()->routeIs('onboarding') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }} flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
+            Manage Profile
+        </a>
+
+        <a href="{{ route('settings.show') }}"
+           class="{{ request()->routeIs('settings.*') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }} flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
+            User Settings
+        </a>
+
+        <a href="{{ route('settings.show') }}#password"
+           class="text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
+            Change Password
+        </a>
+      </nav>
+    </div>
 
     <div class="mt-6 hidden rounded-3xl bg-white/10 p-5 lg:block">
         <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-400">Current goal</p>

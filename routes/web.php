@@ -4,11 +4,15 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\Auth\SocialController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\RoadmapController;
+use App\Http\Controllers\SupportTicketController;
+use App\Http\Controllers\UserSettingsController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -50,10 +54,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding');
     Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
     Route::get('/assessment', [AssessmentController::class, 'show'])->name('assessment.show');
+    Route::get('/assessment/review', [AssessmentController::class, 'review'])->name('assessment.review');
     Route::post('/assessment', [AssessmentController::class, 'store'])->name('assessment.store');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/roadmap', [RoadmapController::class, 'show'])->name('roadmap.show');
     Route::post('/roadmap/generate', [RoadmapController::class, 'generate'])->name('roadmap.generate');
+    Route::post('/support-tickets', [SupportTicketController::class, 'store'])->name('support-tickets.store');
+    Route::get('/settings', [UserSettingsController::class, 'show'])->name('settings.show');
+    Route::patch('/settings/account', [UserSettingsController::class, 'updateAccount'])->name('settings.account.update');
+    Route::patch('/settings/password', [UserSettingsController::class, 'updatePassword'])->name('settings.password.update');
+});
+
+Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
+Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
+
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('users.show');
+    Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
+    Route::patch('/tickets/{ticket}', [AdminController::class, 'updateTicket'])->name('tickets.update');
 });
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login');

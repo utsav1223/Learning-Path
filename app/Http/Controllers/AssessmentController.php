@@ -29,7 +29,18 @@ class AssessmentController extends Controller
             ->whereIn('id', $attempt->question_ids)
             ->get()
             ->sortBy(fn ($question) => array_search($question->id, $attempt->question_ids, true))
-            ->values();
+            ->values()
+            ->map(function (AssessmentQuestion $question) use ($attempt) {
+                $seed = crc32($attempt->id . ':' . $question->id);
+                $options = collect($question->options)
+                    ->sortBy(fn ($option) => crc32($seed . ':' . $option))
+                    ->values()
+                    ->all();
+
+                $question->setAttribute('shuffled_options', $options);
+
+                return $question;
+            });
 
         $questionMeta = $questions->map(function ($question) {
             return [
@@ -46,6 +57,40 @@ class AssessmentController extends Controller
             'recommendedStack' => $attempt->recommended_stack,
             'questionMeta' => $questionMeta,
         ]);
+    }
+
+    public function review(Request $request)
+    {
+        $user = $request->user()->load('profile', 'assessmentAttempt.answers.question');
+
+        if (!$user->hasOnboarded()) {
+            return redirect()->route('onboarding');
+        }
+
+        $attempt = $user->assessmentAttempt;
+
+        if (!$attempt || !$attempt->isCompleted()) {
+            return redirect()->route('dashboard')->with('status', 'Complete your assessment first to review wrong answers.');
+        }
+
+        $profile = $user->profile;
+        $attemptAnswers = $attempt
+            ? $attempt->answers()->with('question')->get()
+            : collect();
+        $wrongAnswers = $attemptAnswers
+            ->filter(fn ($answer) => !$answer->is_correct && $answer->question)
+            ->sortBy(fn ($answer) => $answer->question->topic)
+            ->values();
+        $allAnswers = $attemptAnswers
+            ->filter(fn ($answer) => $answer->question)
+            ->sortBy([
+                ['is_correct', 'asc'],
+                fn ($answer) => $answer->question->topic,
+            ])
+            ->values();
+        $correctAnswers = $allAnswers->where('is_correct', true)->values();
+
+        return view('assessment.review', compact('user', 'profile', 'attempt', 'wrongAnswers', 'correctAnswers', 'allAnswers'));
     }
 
     public function store(Request $request)

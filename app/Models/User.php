@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\VerifyEmailCustom;
 use App\Models\AssessmentAttempt;
+use App\Models\SupportTicket;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -28,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'provider',
         'provider_id',
         'email_verified_at',
+        'is_admin',
     ];
 
     /**
@@ -47,6 +49,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'onboarded_at' => 'datetime',
             'proficiency' => 'float',
+            'is_admin' => 'boolean',
             'password' => 'hashed',
         ];
     }
@@ -70,6 +73,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function assessmentAttempt()
     {
         return $this->hasOne(AssessmentAttempt::class);
+    }
+
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class);
     }
 
     public function sendEmailVerificationNotification()

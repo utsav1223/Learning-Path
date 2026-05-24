@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\LearningPlanner;
 use App\Support\RoadmapGenerator;
 use Illuminate\Http\Request;
 
@@ -23,12 +24,15 @@ class RoadmapController extends Controller
         $profile = $user->profile;
         $dailyMinutes = (int) ($profile?->daily_learning_time ?? 45);
         $roadmap = $attempt?->ai_roadmap ?? [];
+        $weakAreaPracticePlan = LearningPlanner::weakAreaPracticePlan($attempt, $profile);
 
         return view('roadmap.show', compact(
             'user',
             'profile',
+            'attempt',
             'dailyMinutes',
-            'roadmap'
+            'roadmap',
+            'weakAreaPracticePlan'
         ));
     }
 

@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const nextButton = document.querySelector('[data-next-step]');
     const previousButton = document.querySelector('[data-prev-step]');
     const submitButton = document.querySelector('[data-submit-step]');
+    const submitSpinner = document.querySelector('[data-submit-spinner]');
+    const submitLabel = document.querySelector('[data-submit-label]');
     const goalTypes = document.querySelector('[data-goal-types]');
     const goalOptions = document.querySelector('[data-goal-options]');
     const goalSearch = document.querySelector('[data-goal-search]');
@@ -229,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             if (marker) {
-                marker.textContent = isComplete ? '✓' : `${index + 1}`;
+                marker.textContent = isComplete ? 'OK' : `${index + 1}`;
                 marker.classList.toggle('border-emerald-500', isComplete);
                 marker.classList.toggle('bg-emerald-500', isComplete);
                 marker.classList.toggle('border-blue-600', isActive);
@@ -270,7 +272,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         activeGoalType = goalTypeId;
 
         if (!type) {
-            goalOptions.innerHTML = '<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">Choose a direction to load recommended goals and the matching skill stack.</div>';
+            goalOptions.innerHTML = '<div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">Choose a direction to load recommended goals and the matching skill stack.</div>';
             return;
         }
 
@@ -284,17 +286,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             label.className = 'cursor-pointer';
             label.innerHTML = `
                 <input type="radio" name="goal_option" value="${goal.label}" class="peer sr-only">
-                <span class="block rounded-3xl border border-slate-200 bg-white p-5 transition duration-200 dark:border-slate-700 dark:bg-slate-900 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-950/40">
+                <span class="block rounded-xl border border-slate-200 bg-white p-5 transition duration-200 dark:border-slate-700 dark:bg-slate-900 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-950/40">
                     <span class="flex items-start justify-between gap-4">
                         <span>
                             <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:bg-slate-800 dark:text-slate-300">${goal.badge || 'Recommended'}</span>
                             <span class="mt-3 block text-lg font-extrabold text-slate-900 dark:text-slate-100">${goal.label}</span>
                             <span class="mt-2 block text-sm font-semibold leading-6 text-slate-500 dark:text-slate-300">${goal.fit || goal.stack.join(' -> ')}</span>
                         </span>
-                        <span class="inline-flex h-10 min-w-10 items-center justify-center rounded-2xl bg-slate-100 px-3 text-xs font-extrabold text-slate-700 dark:bg-slate-800 dark:text-slate-200">${goal.durationMonths} mo</span>
+                        <span class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg bg-slate-100 px-3 text-xs font-extrabold text-slate-700 dark:bg-slate-800 dark:text-slate-200">${goal.durationMonths} mo</span>
                     </span>
                     <span class="mt-4 grid gap-2 sm:grid-cols-3">
-                        ${(goal.projects || []).slice(0, 3).map((project) => `<span class="rounded-2xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 dark:bg-slate-800/80 dark:text-slate-300">${project}</span>`).join('')}
+                        ${(goal.projects || []).slice(0, 3).map((project) => `<span class="rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 dark:bg-slate-800/80 dark:text-slate-300">${project}</span>`).join('')}
                     </span>
                     <span class="mt-4 block text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">${goal.stack.join(' -> ')}</span>
                 </span>
@@ -325,13 +327,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             label.className = 'cursor-pointer';
             label.innerHTML = `
                 <input type="radio" name="goal_type" value="${goalType.id}" class="peer sr-only">
-                <span class="block rounded-3xl border border-slate-200 bg-white p-4 transition duration-200 dark:border-slate-700 dark:bg-slate-900 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-950/40">
+                <span class="block rounded-xl border border-slate-200 bg-white p-4 transition duration-200 dark:border-slate-700 dark:bg-slate-900 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-950/40">
                     <span class="flex items-center justify-between gap-3">
                         <span>
                             <span class="block text-base font-extrabold text-slate-900 dark:text-slate-100">${goalType.label}</span>
                             <span class="mt-1 block text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">${goalType.summary}</span>
                         </span>
-                        <span class="inline-flex h-10 min-w-10 items-center justify-center rounded-2xl bg-slate-100 px-3 text-xs font-extrabold text-slate-700 dark:bg-slate-800 dark:text-slate-200">${goalType.goals.length}</span>
+                        <span class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg bg-slate-100 px-3 text-xs font-extrabold text-slate-700 dark:bg-slate-800 dark:text-slate-200">${goalType.goals.length}</span>
                     </span>
                     <span class="mt-3 block text-sm font-semibold leading-6 text-slate-500 dark:text-slate-300">${goalType.description || ''}</span>
                     <span class="mt-3 flex flex-wrap gap-2">
@@ -449,9 +451,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         summaryNodes.goal.textContent = profile.goal || 'Choose a goal';
         summaryNodes.role.textContent = profile.targetRole || 'Add your target role';
-        summaryNodes.level.textContent = `${profile.skill} · ${profile.experienceYears} yrs`;
+        summaryNodes.level.textContent = `${profile.skill} | ${profile.experienceYears} yrs`;
         summaryNodes.interests.textContent = profile.interests.length ? profile.interests.join(', ') : 'Pick your focus areas';
-        summaryNodes.pace.textContent = `${profile.time} min · ${profile.weeklyDays} days · ${profile.studyWindow}`;
+        summaryNodes.pace.textContent = `${profile.time} min | ${profile.weeklyDays} days | ${profile.studyWindow}`;
         summaryNodes.duration.textContent = recommendation.duration;
         summaryNodes.stack.textContent = recommendation.stack;
         summaryNodes.note.textContent = recommendation.note;
@@ -506,5 +508,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         generatingOverlay.classList.remove('hidden');
         generatingOverlay.classList.add('flex');
+        submitButton.disabled = true;
+        submitButton.classList.add('cursor-wait', 'opacity-80');
+        submitSpinner?.classList.remove('hidden');
+        submitSpinner?.classList.add('inline-block', 'animate-spin');
+        if (submitLabel) {
+            submitLabel.textContent = 'Starting assessment...';
+        }
     });
 });

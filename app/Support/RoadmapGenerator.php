@@ -131,6 +131,7 @@ class RoadmapGenerator
         $supportStyle    = $profile?->support_style ?? 'self-directed';
         $interests       = collect($profile?->interests ?? [])->implode(', ');
         $strengths       = collect($profile?->strengths ?? [])->implode(', ');
+        $practicePlan    = LearningPlanner::weakAreaPracticePlan($attempt, $profile);
     
         $weakList        = implode(', ', $weakAreas) ?: 'not identified';
         $strongList      = implode(', ', $strongAreas) ?: 'not identified';
@@ -143,6 +144,13 @@ class RoadmapGenerator
             $topicBreakdownText .= "  - {$topicName}: {$topicScore}%\n";
         }
         $topicBreakdownText = $topicBreakdownText ?: '  - No breakdown available';
+
+        $practicePlanText = '';
+        foreach ($practicePlan as $area) {
+            $focusItems = implode(', ', $area['focus_items'] ?? []);
+            $practicePlanText .= "  - {$area['topic']} ({$area['score']}%): practice {$focusItems}\n";
+        }
+        $practicePlanText = $practicePlanText ?: '  - No practice map available';
     
         $effortLabel = match (true) {
             $dailyMinutes <= 30 => 'very short sessions',
@@ -201,6 +209,9 @@ Strong areas (use these to build momentum):
 Topic-by-topic breakdown:
 {$topicBreakdownText}
 
+Subtopic practice map derived from onboarding goal + assessment:
+{$practicePlanText}
+
 ════════════════════════════════════════
 COACHING CONTEXT
 ════════════════════════════════════════
@@ -211,7 +222,7 @@ Session length       : Tasks should be sized for {$effortLabel} ({$dailyMinutes}
 ════════════════════════════════════════
 STRICT OUTPUT RULES
 ════════════════════════════════════════
-1.  WEAK AREAS FIRST. Every Week 1 task and at least 60% of Week 2 tasks must directly address the lowest-scoring topic ({$weakList}). Name the topic explicitly in the task title — never write generic titles like "Study core concept".
+1.  WEAK AREAS FIRST. Every Week 1 task and at least 60% of Week 2 tasks must directly address the lowest-scoring topic ({$weakList}). Name the topic explicitly in the task title and use the subtopic practice map above, e.g. inside HTML mention semantic layout/forms/accessibility instead of only "HTML".
 
 2.  USE THE SCORE. If percentage < 50, the roadmap must be remedial: slow down, repeat, drill. If 50–75, balanced repair + building. If > 75, focus on depth and shipping, not fundamentals.
 
@@ -223,7 +234,7 @@ STRICT OUTPUT RULES
     - Official docs (MDN, docs.python.org, laravel.com/docs, react.dev)
     - Free courses (javascript.info, fullstackopen.com, theodinproject.com)
     - Practice tools (exercism.org, codewars.com, sqlbolt.com)
-    - Video (YouTube specific tutorials, not the homepage)
+    - Video (prefer specific YouTube video URLs like https://www.youtube.com/watch?v=VIDEO_ID when you are confident the video exists; use channel pages only when you cannot safely name a specific video)
     Never invent URLs. If unsure, use a well-known specific page you are confident exists.
 
 6.  MENTOR NOTES must feel personal to {$user->name}'s situation — reference their actual score ({$percentage}%), their weak area ({$weakList}), and their goal ({$goal}). No generic advice.
@@ -240,6 +251,12 @@ STRICT OUTPUT RULES
 
 12. TODO ITEMS must reference specific topics from the assessment breakdown, not generic categories.
 
+13. FOCUS EXPLANATIONS are required. Every weekly goal must explain what to focus on, why it matters for the learner's score, and what to ignore for now so the plan stays clear.
+
+14. TASK DETAILS must be instructional. Each task detail must include: the exact subtopic to study, the action to take, the output to create, and how the learner knows it is done.
+
+15. RESOURCES must explain fit. Every resource "why" must connect to a weak area, project milestone, or target role. Include useful YouTube video links when video support helps so the UI can show the video directly inside the card.
+
 ════════════════════════════════════════
 REQUIRED JSON SHAPE
 ════════════════════════════════════════
@@ -255,7 +272,7 @@ Return exactly this structure. Do not add or remove top-level keys.
     {"label": "Primary repair area", "value": "string — name the #1 weak topic"}
   ],
   "priority_actions": [
-    "5 specific action strings. Each starts with a verb and names a topic. E.g. 'Complete 10 SQL JOIN exercises on SQLBolt before touching any other topic this week.'"
+    "5 specific action strings. Each starts with a verb, names a topic, says why it is the priority, and identifies the output. E.g. 'Complete 10 SQL JOIN exercises on SQLBolt because JOIN logic is the main weak area; save the mistakes in a review log.'"
   ],
   "mentor_notes": [
     "4 personal coaching observations. Each must reference something specific from the learner's data — their score, a named weak area, their daily time, or their goal."
@@ -272,12 +289,12 @@ Return exactly this structure. Do not add or remove top-level keys.
     {
       "week": "Week 1",
       "title": "Name the primary skill being drilled this week",
-      "goal": "One sentence: what specific competency will improve by end of this week",
+      "goal": "2 sentences: what specific competency will improve, why this focus matters for their score, and what to ignore this week",
       "deliverable": "A concrete artefact — name it specifically",
       "tasks": [
         {
           "title": "Specific task name with the exact concept/technique",
-          "detail": "Exactly what to do, how to do it, and what output to produce. 2-3 sentences.",
+          "detail": "Exactly what to focus on, how to do it, what output to produce, and how to verify completion. 2-3 sentences.",
           "effort": "{$dailyMinutes} min",
           "priority": "High|Medium|Low"
         }
@@ -432,7 +449,7 @@ PROMPT;
             'study_tracks' => $studyTracks,
             'weekly_focus' => $normalizedWeeks,
             'todo_sections' => $todoSections,
-            'resource_stack' => array_values(array_slice($resourceStack, 0, 8)),
+            'resource_stack' => array_values(array_slice($resourceStack, 0, 10)),
             'project_milestones' => $projectMilestones,
         ];
     }
@@ -515,59 +532,60 @@ PROMPT;
         $resources = $resourceTopics->map(function (string $topic) {
             return self::resourceForTopic($topic);
         })->values();
+        $videoResources = self::youtubeResources($goal, $primaryWeak, $secondaryWeak, $primaryStrong);
 
         $weeklyFocus = [
             [
                 'week' => 'Week 1',
                 'title' => $primaryWeak . ' repair sprint',
-                'goal' => 'Close the biggest accuracy gap from the assessment and rebuild confidence.',
-                'deliverable' => 'Concept notes, 8 to 10 solved practice questions, and one recap summary.',
+                'goal' => 'Focus on ' . $primaryWeak . ' because it is the biggest assessment gap blocking ' . $goal . '. Ignore advanced project polish this week and spend every session producing notes, drills, or corrected examples.',
+                'deliverable' => $primaryWeak . ' repair pack: concept map, mistake log, 10 solved practice questions, and one recap summary.',
                 'tasks' => [
-                    self::task('Audit mistakes from the assessment', 'Write down why each wrong answer was wrong and what concept was missing.', '25 min', 'High'),
-                    self::task('Study the core concept', 'Read the primary documentation and rewrite the idea in your own words.', self::effortWindow($dailyMinutes), 'High'),
-                    self::task('Practice with short drills', 'Do targeted exercises until you can solve them without looking up the pattern.', self::effortWindow($dailyMinutes), 'High'),
+                    self::task('Audit ' . $primaryWeak . ' mistakes from the assessment', 'Review every missed ' . $primaryWeak . ' question and write the exact reason it was wrong. Output a mistake log with the missing concept, the corrected answer, and one rule you will remember next time.', '25 min', 'High'),
+                    self::task('Rebuild ' . $primaryWeak . ' fundamentals from docs', 'Study only the core ' . $primaryWeak . ' concepts needed for your wrong answers. Output a one-page note with definitions, one example, one counterexample, and a short self-check question.', self::effortWindow($dailyMinutes), 'High'),
+                    self::task('Solve targeted ' . $primaryWeak . ' drills', 'Complete a focused drill set on ' . $primaryWeak . ' without switching topics. Output 8 to 10 solved items and mark any pattern you still cannot explain in your own words.', self::effortWindow($dailyMinutes), 'High'),
                 ],
                 'resources' => $resources->filter(fn ($resource) => strcasecmp($resource['topic'], $primaryWeak) === 0)->take(2)->values()->all(),
-                'checkpoint' => 'You should be able to explain the topic clearly and solve a basic question set without help.',
+                'checkpoint' => 'Can you explain ' . $primaryWeak . ' clearly and solve a fresh basic question set without notes?',
             ],
             [
                 'week' => 'Week 2',
                 'title' => $secondaryWeak . ' reinforcement',
-                'goal' => 'Convert shaky understanding into a repeatable routine under time pressure.',
-                'deliverable' => 'A completed drill block plus one mini implementation or notebook.',
+                'goal' => 'Focus on ' . $secondaryWeak . ' because it is the next topic most likely to slow progress after ' . $primaryWeak . '. Ignore broad revision lists and turn this weak area into a repeatable routine under light time pressure.',
+                'deliverable' => $secondaryWeak . ' drill block plus one mini implementation or notebook.',
                 'tasks' => [
-                    self::task('Review the top patterns', 'Create a short cheat sheet for the most repeated ideas in this topic.', '30 min', 'High'),
-                    self::task('Build one tiny artifact', 'Turn the topic into a visible piece of work so it sticks.', self::effortWindow($dailyMinutes), 'Medium'),
-                    self::task('Run a timed checkpoint', 'Attempt a short timed quiz or exercise set and track where you hesitated.', '20 min', 'Medium'),
+                    self::task('Map the top ' . $secondaryWeak . ' patterns', 'Create a short cheat sheet for the repeated ideas in ' . $secondaryWeak . '. Output three patterns, one example for each, and one common mistake from your assessment style.', '30 min', 'High'),
+                    self::task('Build one tiny ' . $secondaryWeak . ' artifact', 'Turn ' . $secondaryWeak . ' into a small visible output such as a function, component, notebook, query, or diagram. It is done when the artifact runs or can be explained without reading the resource again.', self::effortWindow($dailyMinutes), 'Medium'),
+                    self::task('Run a timed ' . $secondaryWeak . ' checkpoint', 'Attempt a short timed quiz or exercise set on ' . $secondaryWeak . ' and track where you hesitated. Output your score, the slowest question, and one correction for the next session.', '20 min', 'Medium'),
                 ],
                 'resources' => $resources->filter(fn ($resource) => strcasecmp($resource['topic'], $secondaryWeak) === 0)->take(2)->values()->all(),
-                'checkpoint' => 'You should finish a short task on this topic with fewer references and fewer repeated errors.',
+                'checkpoint' => 'Can you finish a short ' . $secondaryWeak . ' task with fewer references and fewer repeated errors than Week 1?',
             ],
             [
                 'week' => 'Week 3',
                 'title' => $primaryStrong . ' leverage week',
-                'goal' => 'Use a strong area to ship something visible and recover motivation.',
-                'deliverable' => 'A portfolio-ready mini build aligned with the target role.',
+                'goal' => 'Focus on ' . $primaryStrong . ' because it is already a stronger area and can help you ship visible proof for ' . $goal . '. Ignore adding new tools unless they directly support the mini build.',
+                'deliverable' => 'Portfolio-ready mini build using ' . $primaryStrong . ' and aligned with ' . ($profile?->target_role ?? 'the target role') . '.',
                 'tasks' => [
-                    self::task('Choose a scoped mini project', 'Pick a deliverable small enough to finish inside the week.', '20 min', 'High'),
-                    self::task('Build in focused sessions', 'Use your strongest area to move quickly while documenting decisions.', self::effortWindow($dailyMinutes), 'High'),
-                    self::task('Review for quality', 'Add polish, fix mistakes, and write a short retrospective.', '30 min', 'Medium'),
+                    self::task('Scope a ' . $primaryStrong . ' mini project', 'Pick a deliverable small enough to finish this week and write a 5-line requirement list. Output the feature list, success criteria, and the exact file or notebook you will create.', '20 min', 'High'),
+                    self::task('Build with ' . $primaryStrong . ' in focused sessions', 'Use ' . $primaryStrong . ' to move quickly while documenting each design decision. Output a working draft and a short note explaining how this supports your target role.', self::effortWindow($dailyMinutes), 'High'),
+                    self::task('Polish the ' . $primaryStrong . ' deliverable', 'Fix obvious mistakes, add a README or explanation, and compare the result with your original criteria. Output a clean demo summary and three lessons learned.', '30 min', 'Medium'),
                 ],
                 'resources' => $resources->filter(fn ($resource) => strcasecmp($resource['topic'], $primaryStrong) === 0)->take(2)->values()->all(),
-                'checkpoint' => 'Publish or demo the mini build and note which skills now feel stronger.',
+                'checkpoint' => 'Can you demo the mini build and name which ' . $primaryStrong . ' skills now feel stronger?',
             ],
             [
                 'week' => 'Week 4',
                 'title' => $goal . ' consolidation',
-                'goal' => 'Tie together weak-area repair, stronger execution, and the next milestone.',
-                'deliverable' => 'One revision pack, one reflection note, and a next-step backlog.',
+                'goal' => 'Focus on connecting ' . $primaryWeak . ', ' . $secondaryWeak . ', and ' . $primaryStrong . ' into one clear next step for ' . $goal . '. Ignore brand-new topics and use this week to prove what improved.',
+                'deliverable' => 'Revision pack, reflection note, next-step backlog, and one updated project milestone.',
                 'tasks' => [
-                    self::task('Revisit the weakest concepts', 'Do a final review pass on the first two weak topics.', '30 min', 'High'),
-                    self::task('Summarize learning evidence', 'Capture what you built, what improved, and what still needs work.', '25 min', 'Medium'),
-                    self::task('Prepare the next month', 'Create the next list of topics and project ideas based on this roadmap.', '20 min', 'Medium'),
+                    self::task('Retest ' . $primaryWeak . ' and ' . $secondaryWeak, 'Do a final review pass on both weak topics using fresh questions or examples. Output a pass/fail note for each topic and repeat any concept you cannot explain cleanly.', '30 min', 'High'),
+                    self::task('Summarize evidence for ' . $goal, 'Capture what you built, what improved, and what still needs work for your goal. Output a short progress note with links or filenames for your strongest evidence.', '25 min', 'Medium'),
+                    self::task('Prepare the next ' . $goal . ' backlog', 'Create the next list of topics and project ideas based on this roadmap. Output a ranked backlog with the top three next actions and why each one matters.', '20 min', 'Medium'),
                 ],
                 'resources' => $resources->take(2)->values()->all(),
-                'checkpoint' => 'You should leave this week with a clear next roadmap and proof of progress.',
+                'checkpoint' => 'Do you have proof of progress and a ranked next-month backlog for ' . $goal . '?',
             ],
         ];
 
@@ -581,15 +599,17 @@ PROMPT;
                 ['label' => 'Primary repair area', 'value' => $primaryWeak],
             ],
             'priority_actions' => [
-                'Start each study week with the weakest topic before moving into comfortable work.',
-                'Turn every study block into one visible output: notes, drills, code, or a checkpoint recap.',
-                'Keep a mistake log from the assessment and update it whenever you get stuck again.',
-                'Use your strongest topic to build confidence, but do not let it replace weak-area repair.',
+                'Repair ' . $primaryWeak . ' first because it is the main weak area; output a mistake log and 10 corrected examples.',
+                'Practice ' . $secondaryWeak . ' in one focused session because it is the next blocker; output a cheat sheet and timed drill score.',
+                'Create a visible artifact after every study block because passive review is easy to forget; output notes, code, drills, or a checkpoint recap.',
+                'Use ' . $primaryStrong . ' to build confidence after weak-area work; output one small role-ready feature or demo.',
+                'Review progress every Sunday because the plan should stay honest; output a ranked backlog for the next study week.',
             ],
             'mentor_notes' => [
-                'Treat wrong answers as the roadmap input, not as failure.',
-                'A smaller project finished cleanly is more valuable than a large unfinished one.',
-                'If a concept still feels fuzzy after two sessions, switch from passive reading to active exercises.',
+                $user->name . ', your ' . (($attempt->percentage ?? 0) . '%') . ' assessment score makes ' . $primaryWeak . ' the first focus area, so start there before adding new topics.',
+                'Your daily ' . $dailyMinutes . '-minute block is enough for steady progress if each session creates one concrete output.',
+                'Because your goal is ' . $goal . ', the roadmap turns weak-area repair into small portfolio evidence instead of only reading resources.',
+                'If ' . $primaryWeak . ' still feels unclear after two sessions, switch from passive reading to active exercises and explain each answer aloud.',
             ],
             'study_tracks' => [
                 [
@@ -639,7 +659,7 @@ PROMPT;
                     ],
                 ],
             ],
-            'resource_stack' => $resources->values()->all(),
+            'resource_stack' => $resources->merge($videoResources)->take(10)->values()->all(),
             'project_milestones' => [
                 [
                     'title' => 'Repair sprint artifact',
@@ -726,5 +746,72 @@ PROMPT;
             'why' => 'Use this as a starting point while refining resources for the topic.',
             'topic' => $topic,
         ];
+    }
+
+    private static function youtubeResources(string $goal, string $primaryWeak, string $secondaryWeak, string $primaryStrong): \Illuminate\Support\Collection
+    {
+        $learningSignal = Str::of($goal . ' ' . $primaryWeak . ' ' . $secondaryWeak . ' ' . $primaryStrong)->lower()->value();
+
+        $library = [
+            'frontend' => [
+                ['freeCodeCamp HTML Full Course', 'https://www.youtube.com/watch?v=pQN-pnXPaVg', $primaryWeak, 'Use this when frontend foundations or HTML/CSS structure are part of the weak area.'],
+                ['Traversy Media React Crash Course', 'https://www.youtube.com/watch?v=w7ejDZ8SWv8', $secondaryWeak, 'Good for turning React and component gaps into a practical project-style walkthrough.'],
+                ['Kevin Powell CSS layout lessons', 'https://www.youtube.com/watch?v=rg7Fvvl3taU', 'CSS', 'Helpful when responsive layout, spacing, and CSS confidence need repair.'],
+            ],
+            'backend' => [
+                ['Traversy Media backend project lessons', 'https://www.youtube.com/@TraversyMedia', $primaryWeak, 'Practical backend and API walkthroughs that support project-based learning.'],
+                ['Traversy Media API project lessons', 'https://www.youtube.com/@TraversyMedia', $secondaryWeak, 'Practical backend and API walkthroughs that support project-based learning.'],
+                ['freeCodeCamp backend courses', 'https://www.youtube.com/@freecodecamp', $primaryStrong, 'Long-form backend courses for deeper repair and repetition.'],
+            ],
+            'data' => [
+                ['Corey Schafer Python lessons', 'https://www.youtube.com/watch?v=ZDa-Z5JzLYM', 'Python', 'Clear Python explanations that support data, AI, and backend foundations.'],
+                ['StatQuest machine learning explanations', 'https://www.youtube.com/watch?v=qBigTkBLU6g', 'Machine Learning', 'Friendly statistics and machine learning explanations for model evaluation gaps.'],
+                ['freeCodeCamp data science courses', 'https://www.youtube.com/@freecodecamp', $primaryWeak, 'Long-form data and Python courses for learners who need structured repetition.'],
+            ],
+            'dsa' => [
+                ['freeCodeCamp algorithms courses', 'https://www.youtube.com/@freecodecamp', $primaryWeak, 'Useful for long-form algorithms revision and beginner-friendly explanations.'],
+                ['freeCodeCamp algorithms courses', 'https://www.youtube.com/@freecodecamp', $secondaryWeak, 'Useful for long-form algorithms revision and beginner-friendly explanations.'],
+                ['Fireship quick concept refreshers', 'https://www.youtube.com/watch?v=DHjqpvDnNGE', $primaryStrong, 'Short technical explainers for quick recall before practice.'],
+            ],
+            'mobile' => [
+                ['The Net Ninja Flutter playlists', 'https://www.youtube.com/@NetNinja', $primaryWeak, 'Playlist-based mobile lessons for widgets, state, forms, and app flow.'],
+                ['freeCodeCamp mobile app courses', 'https://www.youtube.com/@freecodecamp', $secondaryWeak, 'Longer mobile tutorials that help connect UI and project delivery.'],
+                ['Fireship mobile explainers', 'https://www.youtube.com/watch?v=DHjqpvDnNGE', $primaryStrong, 'Fast concept refreshers before building mobile milestones.'],
+            ],
+            'devops' => [
+                ['TechWorld with Nana Docker tutorial', 'https://www.youtube.com/watch?v=3c-iBn73dDE', $primaryWeak, 'Clear DevOps lessons for Docker, CI/CD, cloud basics, and deployment thinking.'],
+                ['freeCodeCamp DevOps courses', 'https://www.youtube.com/@freecodecamp', $secondaryWeak, 'Long-form DevOps and deployment courses for structured study.'],
+                ['Fireship deployment explainers', 'https://www.youtube.com/watch?v=DHjqpvDnNGE', $primaryStrong, 'Fast revision for modern tooling and deployment concepts.'],
+            ],
+            'projects' => [
+                ['Traversy Media project builds', 'https://www.youtube.com/@TraversyMedia', $primaryWeak, 'Project walkthroughs that help convert weak concepts into visible deliverables.'],
+                ['freeCodeCamp full project courses', 'https://www.youtube.com/@freecodecamp', $secondaryWeak, 'Complete builds for learners who need guided repetition and portfolio output.'],
+                ['Fireship quick technical explainers', 'https://www.youtube.com/watch?v=DHjqpvDnNGE', $primaryStrong, 'Short explainers for fast project planning and tool selection.'],
+            ],
+        ];
+
+        $selectedKey = match (true) {
+            Str::contains($learningSignal, ['frontend', 'react', 'html', 'css', 'javascript', 'accessibility', 'ui']) => 'frontend',
+            Str::contains($learningSignal, ['backend', 'laravel', 'php', 'api', 'sql', 'database', 'auth']) => 'backend',
+            Str::contains($learningSignal, ['data', 'python', 'machine learning', 'ai', 'pandas', 'statistics', 'visualization']) => 'data',
+            Str::contains($learningSignal, ['dsa', 'array', 'string', 'recursion', 'complexity', 'problem solving', 'programming fundamentals']) => 'dsa',
+            Str::contains($learningSignal, ['mobile', 'flutter', 'dart', 'widget']) => 'mobile',
+            Str::contains($learningSignal, ['devops', 'docker', 'ci/cd', 'cloud', 'deployment', 'linux']) => 'devops',
+            default => 'projects',
+        };
+
+        $resources = collect($library[$selectedKey]);
+
+        if ($selectedKey !== 'projects') {
+            $resources = $resources->merge(collect($library['projects'])->take(1));
+        }
+
+        return $resources->unique(fn (array $resource) => $resource[0] . $resource[1])->values()->map(fn (array $resource) => [
+            'title' => $resource[0],
+            'type' => 'Video',
+            'url' => $resource[1],
+            'topic' => $resource[2],
+            'why' => $resource[3],
+        ]);
     }
 }

@@ -8,19 +8,15 @@ use Illuminate\Http\Request;
 
 class OnboardingController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
-        $user = request()->user()?->load('assessmentAttempt', 'profile');
-
-        if ($user?->assessmentAttempt && !$user->assessmentAttempt->isCompleted()) {
-            return redirect()->route('assessment.show')->with('block_back_navigation', true);
-        }
-
         return view('onboarding.show');
     }
 
     public function store(Request $request)
     {
+        $user = $request->user()->load('assessmentAttempt');
+
         $validated = $request->validate([
             'education_level' => ['required', 'string', 'in:School,College,Graduate,Professional'],
             'career_stage' => ['required', 'string', 'max:80'],
@@ -43,8 +39,6 @@ class OnboardingController extends Controller
             'learning_pace' => ['required', 'string', 'max:80'],
             'bio' => ['nullable', 'string', 'max:1000'],
         ]);
-
-        $user = $request->user();
 
         Profile::updateOrCreate(
             ['user_id' => $user->id],
@@ -88,8 +82,8 @@ class OnboardingController extends Controller
 
         LearningPlanner::ensureAttempt($user->fresh('profile'));
 
-        return redirect()->route('assessment.show')
-            ->with('status', 'Your learning path is ready. Complete the one-time assessment to unlock the dashboard.')
+        return redirect()->route('dashboard')
+            ->with('status', 'Your learning path is ready. First complete the assessment, then you can generate your roadmap.')
             ->with('block_back_navigation', true);
     }
 }

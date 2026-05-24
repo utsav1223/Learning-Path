@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
+use App\Support\LearningPlanner;
 use Illuminate\Support\Facades\Auth;
 
 class SocialController
@@ -37,11 +38,28 @@ class SocialController
         }
 
         Auth::login($user);
+        $user->load('profile', 'assessmentAttempt');
 
-        if (is_null($user->onboarded_at)) {
+        if (is_null($user->onboarded_at) && $user->profile) {
+            $user->forceFill([
+                'goal' => $user->goal ?? $user->profile->learning_goal,
+                'onboarded_at' => now(),
+            ])->save();
+        }
+
+        if (is_null($user->onboarded_at) && !$user->profile) {
             return redirect()->route('onboarding');
         }
 
-        return redirect()->route('onboarding');
+        if (!$user->assessmentAttempt || !$user->assessmentAttempt->isCompleted()) {
+            if ($user->profile) {
+                LearningPlanner::ensureAttempt($user->fresh('profile'));
+            }
+
+            return redirect()->route('dashboard')
+                ->with('status', 'First complete your assessment, then you can generate your roadmap.');
+        }
+
+        return redirect()->route('dashboard');
     }
 }

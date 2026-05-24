@@ -32,7 +32,7 @@ class LoginController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
-            $user->load('assessmentAttempt');
+            $user->load('profile', 'assessmentAttempt');
 
             // email verified check
             if (is_null($user->email_verified_at)) {
@@ -42,15 +42,25 @@ class LoginController extends Controller
                 ]);
             }
 
+            if (is_null($user->onboarded_at) && $user->profile) {
+                $user->forceFill([
+                    'goal' => $user->goal ?? $user->profile->learning_goal,
+                    'onboarded_at' => now(),
+                ])->save();
+            }
+
             // onboarding check
-            if (is_null($user->onboarded_at)) {
+            if (is_null($user->onboarded_at) && !$user->profile) {
                 return redirect()->route('onboarding');
             }
 
             if (!$user->assessmentAttempt || !$user->assessmentAttempt->isCompleted()) {
-                LearningPlanner::ensureAttempt($user->load('profile'));
+                if ($user->profile) {
+                    LearningPlanner::ensureAttempt($user->fresh('profile'));
+                }
 
-                return redirect()->route('assessment.show');
+                return redirect()->route('dashboard')
+                    ->with('status', 'First complete your assessment, then you can generate your roadmap.');
             }
 
             return redirect()->route('dashboard');

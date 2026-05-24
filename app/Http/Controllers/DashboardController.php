@@ -15,10 +15,9 @@ class DashboardController extends Controller
             return redirect()->route('onboarding');
         }
 
-        if (!$user->assessmentAttempt || !$user->assessmentAttempt->isCompleted()) {
+        if (!$user->assessmentAttempt) {
             LearningPlanner::ensureAttempt($user->load('profile'));
-
-            return redirect()->route('assessment.show');
+            $user->refresh()->load('profile', 'assessmentAttempt.answers.question');
         }
 
         $profile = $user->profile;
@@ -41,8 +40,35 @@ class DashboardController extends Controller
         $completionRate = $attempt?->percentage ?? 0;
         $weakTopicBreakdown = $topicBreakdown->sortBy('score')->take(4)->values();
         $strongTopicBreakdown = $topicBreakdown->sortByDesc('score')->take(4)->values();
+        $weakAreaPracticePlan = $hasCompletedAssessment
+            ? LearningPlanner::weakAreaPracticePlan($attempt, $profile)
+            : [];
+        $attemptAnswers = $attempt
+            ? $attempt->answers()->with('question')->get()
+            : collect();
+        $wrongAnswerPreview = $hasCompletedAssessment
+            ? $attemptAnswers
+                ->filter(fn ($answer) => !$answer->is_correct && $answer->question)
+                ->sortBy(fn ($answer) => $answer->question->topic)
+                ->take(3)
+                ->values()
+            : collect();
+        $answerReviewPreview = $hasCompletedAssessment
+            ? $attemptAnswers
+                ->filter(fn ($answer) => $answer->question)
+                ->sortBy([
+                    ['is_correct', 'asc'],
+                    fn ($answer) => $answer->question->topic,
+                ])
+                ->take(6)
+                ->values()
+            : collect();
         $topicLabels = $weakTopicBreakdown->pluck('topic')->all();
         $topicScores = $weakTopicBreakdown->pluck('score')->all();
+        $supportTickets = $user->supportTickets()
+            ->latest()
+            ->take(6)
+            ->get();
 
         $analysisSummary = $hasCompletedAssessment
             ? 'Assessment signals now shape both the recovery plan and the project sequence.'
@@ -89,10 +115,14 @@ class DashboardController extends Controller
             'wrongCount',
             'weakTopicBreakdown',
             'strongTopicBreakdown',
+            'weakAreaPracticePlan',
+            'wrongAnswerPreview',
+            'answerReviewPreview',
             'insights',
             'analysisSummary',
             'topicLabels',
-            'topicScores'
+            'topicScores',
+            'supportTickets'
         ));
     }
 }
