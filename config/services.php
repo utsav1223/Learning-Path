@@ -22,7 +22,7 @@ return [
 ],
 
     'gemini' => [
-        'enabled' => env('GEMINI_RECOMMENDATIONS_ENABLED', false),
+        'enabled' => env('GEMINI_ENABLED', false),
         'api_key' => env('GEMINI_API_KEY'),
         'model' => env('GEMINI_MODEL', 'gemini-2.5-pro'),
         'endpoint' => env('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta'),

@@ -41,20 +41,12 @@ class DashboardController extends Controller
         $completionRate = $attempt?->percentage ?? 0;
         $weakTopicBreakdown = $topicBreakdown->sortBy('score')->take(4)->values();
         $strongTopicBreakdown = $topicBreakdown->sortByDesc('score')->take(4)->values();
-        $roadmap = $attempt?->ai_roadmap ?? [];
-        $roadmapMetrics = collect($roadmap['metrics'] ?? [])->take(4)->values();
-        $studyTracks = collect($roadmap['study_tracks'] ?? [])->take(4)->values();
-        $weeklyFocus = collect($roadmap['weekly_focus'] ?? [])->take(4)->values();
-        $todoSections = collect($roadmap['todo_sections'] ?? [])->take(3)->values();
-        $roadmapResources = collect($roadmap['resource_stack'] ?? [])->take(8)->values();
-        $projectMilestones = collect($roadmap['project_milestones'] ?? [])->take(4)->values();
-        $priorityActions = collect($roadmap['priority_actions'] ?? [])->take(4)->values();
-        $mentorNotes = collect($roadmap['mentor_notes'] ?? [])->take(4)->values();
+        $topicLabels = $weakTopicBreakdown->pluck('topic')->all();
+        $topicScores = $weakTopicBreakdown->pluck('score')->all();
+
         $analysisSummary = $hasCompletedAssessment
             ? 'Assessment signals now shape both the recovery plan and the project sequence.'
             : 'Finish the assessment to unlock topic-level analysis and roadmap generation.';
-        $topicLabels = $weakTopicBreakdown->pluck('topic')->all();
-        $topicScores = $weakTopicBreakdown->pluck('score')->all();
 
         $modules = [
             [
@@ -98,15 +90,6 @@ class DashboardController extends Controller
             'weakTopicBreakdown',
             'strongTopicBreakdown',
             'insights',
-            'roadmap',
-            'roadmapMetrics',
-            'studyTracks',
-            'weeklyFocus',
-            'todoSections',
-            'roadmapResources',
-            'projectMilestones',
-            'priorityActions',
-            'mentorNotes',
             'analysisSummary',
             'topicLabels',
             'topicScores'

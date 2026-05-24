@@ -7,6 +7,7 @@ use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -18,6 +19,13 @@ class RoadmapGenerator
         $fallback = self::fallbackRoadmap($user, $attempt, $profile);
 
         if (!config('services.gemini.enabled') || !config('services.gemini.api_key')) {
+            Log::warning('Gemini roadmap generation skipped because it is disabled or missing an API key.', [
+                'enabled' => (bool) config('services.gemini.enabled'),
+                'has_api_key' => filled(config('services.gemini.api_key')),
+                'attempt_id' => $attempt->id,
+                'user_id' => $user->id,
+            ]);
+
             return [
                 'provider' => 'fallback',
                 'roadmap' => $fallback,
@@ -27,6 +35,8 @@ class RoadmapGenerator
         try {
             $prompt = self::buildPrompt($user, $attempt, $profile, $fallback);
             $timeout = min(120, max(30, (int) config('services.gemini.timeout', 90)));
+
+            set_time_limit($timeout + 15);
 
             $response = Http::connectTimeout(15)
                 ->timeout($timeout)
@@ -43,12 +53,20 @@ class RoadmapGenerator
                     ],
                     'generationConfig' => [
                         'responseMimeType' => 'application/json',
-                        'temperature' => 0.45,
-                        'maxOutputTokens' => 4096,
+                        'temperature' => 0.35,
+                        'maxOutputTokens' => 8192,
                     ],
                 ]);
 
             if (!$response->successful()) {
+                Log::warning('Gemini roadmap generation failed with a non-success response.', [
+                    'status' => $response->status(),
+                    'reason' => data_get($response->json(), 'error.message'),
+                    'model' => config('services.gemini.model'),
+                    'attempt_id' => $attempt->id,
+                    'user_id' => $user->id,
+                ]);
+
                 return [
                     'provider' => 'fallback',
                     'roadmap' => $fallback,
@@ -56,9 +74,16 @@ class RoadmapGenerator
             }
 
             $text = data_get($response->json(), 'candidates.0.content.parts.0.text');
-            $decoded = json_decode((string) $text, true);
+            $decoded = self::decodeJsonResponse((string) $text);
 
             if (!is_array($decoded)) {
+                Log::warning('Gemini roadmap generation returned invalid JSON.', [
+                    'json_error' => json_last_error_msg(),
+                    'response_preview' => Str::limit((string) $text, 500),
+                    'attempt_id' => $attempt->id,
+                    'user_id' => $user->id,
+                ]);
+
                 return [
                     'provider' => 'fallback',
                     'roadmap' => $fallback,
@@ -69,7 +94,14 @@ class RoadmapGenerator
                 'provider' => 'gemini',
                 'roadmap' => self::normalizeRoadmap($decoded, $fallback),
             ];
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            Log::warning('Gemini roadmap generation threw an exception.', [
+                'message' => $exception->getMessage(),
+                'exception' => get_class($exception),
+                'attempt_id' => $attempt->id,
+                'user_id' => $user->id,
+            ]);
+
             return [
                 'provider' => 'fallback',
                 'roadmap' => $fallback,
@@ -79,62 +111,186 @@ class RoadmapGenerator
 
     private static function buildPrompt(User $user, AssessmentAttempt $attempt, ?Profile $profile, array $fallback): string
     {
-        $insights = $attempt->insights ?? [];
-        $payload = [
-            'user_name' => $user->name,
-            'goal' => $profile?->learning_goal ?? $user->goal,
-            'target_role' => $profile?->target_role,
-            'skill_level' => $profile?->skill_level,
-            'daily_minutes' => $profile?->daily_learning_time,
-            'weekly_days' => $profile?->weekly_days,
-            'study_window' => $profile?->preferred_study_window,
-            'format' => $user->learning_format,
-            'pace' => $user->learning_pace,
-            'interests' => $profile?->interests ?? [],
-            'strengths' => $profile?->strengths ?? [],
-            'project_preference' => $profile?->project_preference,
-            'support_style' => $profile?->support_style,
-            'score' => $attempt->score,
-            'percentage' => $attempt->percentage,
-            'weak_areas' => $insights['weak_areas'] ?? [],
-            'strong_areas' => $insights['strong_areas'] ?? [],
-            'topic_breakdown' => $insights['topic_breakdown'] ?? [],
-            'recommended_stack' => $attempt->recommended_stack ?? [],
-        ];
-
+        $insights        = $attempt->insights ?? [];
+        $weakAreas       = collect($insights['weak_areas'] ?? [])->filter()->values()->all();
+        $strongAreas     = collect($insights['strong_areas'] ?? [])->filter()->values()->all();
+        $topicBreakdown  = collect($insights['topic_breakdown'] ?? [])->filter()->values()->all();
+        $stack           = collect($attempt->recommended_stack ?? [])->filter()->values()->all();
+        $dailyMinutes    = max(20, (int) ($profile?->daily_learning_time ?? 45));
+        $weeklyDays      = max(3, (int) ($profile?->weekly_days ?? 5));
+        $weeklyMinutes   = $dailyMinutes * $weeklyDays;
+        $goal            = $profile?->learning_goal ?? $user->goal ?? 'Skill Growth';
+        $targetRole      = $profile?->target_role ?? 'developer';
+        $skillLevel      = $profile?->skill_level ?? 'intermediate';
+        $pace            = $user->learning_pace ?? 'Steady';
+        $format          = $user->learning_format ?? 'Mixed';
+        $score           = $attempt->score ?? 0;
+        $percentage      = $attempt->percentage ?? 0;
+        $studyWindow     = $profile?->preferred_study_window ?? 'flexible';
+        $projectPref     = $profile?->project_preference ?? 'small builds';
+        $supportStyle    = $profile?->support_style ?? 'self-directed';
+        $interests       = collect($profile?->interests ?? [])->implode(', ');
+        $strengths       = collect($profile?->strengths ?? [])->implode(', ');
+    
+        $weakList        = implode(', ', $weakAreas) ?: 'not identified';
+        $strongList      = implode(', ', $strongAreas) ?: 'not identified';
+        $stackList       = implode(', ', $stack) ?: 'general web development';
+    
+        $topicBreakdownText = '';
+        foreach ($topicBreakdown as $topic) {
+            $topicName  = $topic['topic'] ?? 'Unknown';
+            $topicScore = $topic['score'] ?? ($topic['percentage'] ?? 'N/A');
+            $topicBreakdownText .= "  - {$topicName}: {$topicScore}%\n";
+        }
+        $topicBreakdownText = $topicBreakdownText ?: '  - No breakdown available';
+    
+        $effortLabel = match (true) {
+            $dailyMinutes <= 30 => 'very short sessions',
+            $dailyMinutes <= 45 => 'short focused sessions',
+            $dailyMinutes <= 75 => 'standard sessions',
+            default             => 'long deep-work sessions',
+        };
+    
+        $levelContext = match (strtolower($skillLevel)) {
+            'beginner'     => 'Assume they need concepts explained from first principles. Avoid jargon without explanation. Prefer interactive tutorials and guided practice over raw documentation.',
+            'intermediate' => 'Assume they know the basics but have gaps. Skip the 101-level intros. Point to official docs, focused exercises, and small project work.',
+            'advanced'     => 'Assume solid foundations. Focus on depth, edge cases, architecture decisions, and production-grade resources. Skip beginner materials entirely.',
+            default        => 'Calibrate difficulty to their performance evidence in the assessment.',
+        };
+    
+        $paceContext = match (strtolower($pace)) {
+            'fast'   => 'They want to move quickly. Pack tasks tightly. Keep explanations brief. Push toward shipping over studying.',
+            'slow'   => 'They prefer depth and reflection. Allow time to revisit each concept. Include review checkpoints.',
+            default  => 'Steady pace: balanced between covering ground and consolidating understanding.',
+        };
+    
         return <<<PROMPT
-You are generating a practical, professional study roadmap for a learner dashboard after a one-time assessment.
-Return only valid JSON.
-Use this exact top-level shape:
+You are an expert learning coach writing a personalised 4-week study roadmap for a real person.
+Your output will be parsed as JSON and displayed directly on their dashboard.
+You must return ONLY valid JSON — no markdown, no backticks, no prose outside the JSON object.
+
+════════════════════════════════════════
+LEARNER PROFILE
+════════════════════════════════════════
+Name              : {$user->name}
+Goal              : {$goal}
+Target role       : {$targetRole}
+Skill level       : {$skillLevel}
+Learning pace     : {$pace}
+Learning format   : {$format}
+Study window      : {$studyWindow}
+Daily study time  : {$dailyMinutes} minutes/day
+Weekly study days : {$weeklyDays} days/week  →  {$weeklyMinutes} total minutes/week
+Project preference: {$projectPref}
+Support style     : {$supportStyle}
+Interests         : {$interests}
+Self-reported strengths: {$strengths}
+
+════════════════════════════════════════
+ASSESSMENT RESULTS
+════════════════════════════════════════
+Score             : {$score} ({$percentage}%)
+Recommended stack : {$stackList}
+
+Weak areas (prioritise these):
+  {$weakList}
+
+Strong areas (use these to build momentum):
+  {$strongList}
+
+Topic-by-topic breakdown:
+{$topicBreakdownText}
+
+════════════════════════════════════════
+COACHING CONTEXT
+════════════════════════════════════════
+Skill level guidance : {$levelContext}
+Pace guidance        : {$paceContext}
+Session length       : Tasks should be sized for {$effortLabel} ({$dailyMinutes} min). Never write a task that would take longer than one session.
+
+════════════════════════════════════════
+STRICT OUTPUT RULES
+════════════════════════════════════════
+1.  WEAK AREAS FIRST. Every Week 1 task and at least 60% of Week 2 tasks must directly address the lowest-scoring topic ({$weakList}). Name the topic explicitly in the task title — never write generic titles like "Study core concept".
+
+2.  USE THE SCORE. If percentage < 50, the roadmap must be remedial: slow down, repeat, drill. If 50–75, balanced repair + building. If > 75, focus on depth and shipping, not fundamentals.
+
+3.  TASK TITLES MUST BE SPECIFIC. Bad: "Practice JavaScript". Good: "Build a closure-based counter using IIFE pattern in JavaScript". Every task title must name the exact concept, technique, or deliverable.
+
+4.  EFFORT MUST BE REALISTIC. Every task effort must be a specific time string like "35 min" or "45 min". It must be <= {$dailyMinutes} min. Never write "1 hour" if daily_minutes is 45.
+
+5.  RESOURCES MUST BE REAL. Every URL must be a real, working HTTPS URL pointing to a specific page (not a homepage). Prefer:
+    - Official docs (MDN, docs.python.org, laravel.com/docs, react.dev)
+    - Free courses (javascript.info, fullstackopen.com, theodinproject.com)
+    - Practice tools (exercism.org, codewars.com, sqlbolt.com)
+    - Video (YouTube specific tutorials, not the homepage)
+    Never invent URLs. If unsure, use a well-known specific page you are confident exists.
+
+6.  MENTOR NOTES must feel personal to {$user->name}'s situation — reference their actual score ({$percentage}%), their weak area ({$weakList}), and their goal ({$goal}). No generic advice.
+
+7.  PRIORITY ACTIONS must be concrete next steps, not motivational quotes. Start with an action verb. Name the topic.
+
+8.  DELIVERABLES must describe a real artefact the learner can hold up as evidence: a GitHub repo, a working function, a set of handwritten notes, a passing test suite — not "understand the concept".
+
+9.  CHECKPOINT questions must be pass/fail testable. Good: "Can you explain what a Promise chain does without looking at notes?" Bad: "Review your progress."
+
+10. PROJECT MILESTONES must align with the target role ({$targetRole}) and use the recommended stack ({$stackList}). Each milestone should be completable in 1 week given {$dailyMinutes} min/day.
+
+11. METRICS must be pulled from real data: use the actual score, daily minutes, weekly days, and primary weak area. Do not invent numbers.
+
+12. TODO ITEMS must reference specific topics from the assessment breakdown, not generic categories.
+
+════════════════════════════════════════
+REQUIRED JSON SHAPE
+════════════════════════════════════════
+Return exactly this structure. Do not add or remove top-level keys.
+
 {
-  "headline": "string",
-  "summary": "string",
+  "headline": "One sharp sentence naming the learner, goal, and primary focus area",
+  "summary": "2-3 sentence coaching summary that references their score, top weak area, and the 4-week arc. Be direct and encouraging but honest.",
   "metrics": [
-    {"label": "string", "value": "string"}
+    {"label": "Assessment score", "value": "{$percentage}%"},
+    {"label": "Daily focus block", "value": "{$dailyMinutes} min"},
+    {"label": "Study cadence", "value": "{$weeklyDays} days/week"},
+    {"label": "Primary repair area", "value": "string — name the #1 weak topic"}
   ],
-  "priority_actions": ["string"],
-  "mentor_notes": ["string"],
+  "priority_actions": [
+    "5 specific action strings. Each starts with a verb and names a topic. E.g. 'Complete 10 SQL JOIN exercises on SQLBolt before touching any other topic this week.'"
+  ],
+  "mentor_notes": [
+    "4 personal coaching observations. Each must reference something specific from the learner's data — their score, a named weak area, their daily time, or their goal."
+  ],
   "study_tracks": [
     {
-      "title": "string",
-      "reason": "string",
-      "focus_topics": ["string"],
+      "title": "Name the track after the specific skill area, not a generic label",
+      "reason": "1-2 sentences explaining why this track matters for THIS learner based on their assessment data",
+      "focus_topics": ["specific topic 1", "specific topic 2"],
       "confidence": "High|Medium|Low"
     }
   ],
   "weekly_focus": [
     {
       "week": "Week 1",
-      "title": "string",
-      "goal": "string",
-      "deliverable": "string",
+      "title": "Name the primary skill being drilled this week",
+      "goal": "One sentence: what specific competency will improve by end of this week",
+      "deliverable": "A concrete artefact — name it specifically",
       "tasks": [
-        {"title": "string", "detail": "string", "effort": "string", "priority": "High|Medium|Low"}
+        {
+          "title": "Specific task name with the exact concept/technique",
+          "detail": "Exactly what to do, how to do it, and what output to produce. 2-3 sentences.",
+          "effort": "{$dailyMinutes} min",
+          "priority": "High|Medium|Low"
+        }
       ],
       "resources": [
-        {"title": "string", "type": "Docs|Video|Course|Practice|Article", "url": "https://...", "why": "string"}
+        {
+          "title": "Exact resource title",
+          "type": "Docs|Video|Course|Practice|Article",
+          "url": "https://exact-specific-page-url.com/path",
+          "why": "One sentence explaining why this specific resource fits this specific learner's gap"
+        }
       ],
-      "checkpoint": "string"
+      "checkpoint": "A specific testable question the learner can answer yes/no to verify mastery"
     }
   ],
   "todo_sections": [
@@ -142,30 +298,60 @@ Use this exact top-level shape:
       "title": "string",
       "summary": "string",
       "items": [
-        {"task": "string", "outcome": "string", "priority": "High|Medium|Low", "effort": "string"}
+        {
+          "task": "Specific task — name the topic",
+          "outcome": "What they will have produced or understood after completing it",
+          "priority": "High|Medium|Low",
+          "effort": "specific time e.g. 30 min"
+        }
       ]
     }
   ],
   "resource_stack": [
-    {"title": "string", "type": "Docs|Video|Course|Practice|Article", "url": "https://...", "topic": "string", "why": "string"}
+    {
+      "title": "string",
+      "type": "Docs|Video|Course|Practice|Article",
+      "url": "https://real-specific-url.com/path",
+      "topic": "exact topic name from the assessment breakdown",
+      "why": "why this resource for this learner"
+    }
   ],
   "project_milestones": [
-    {"title": "string", "description": "string", "deliverable": "string", "skills": ["string"]}
+    {
+      "title": "string",
+      "description": "What the project is and why it matches their target role",
+      "deliverable": "The exact output — a repo URL format, a script, a deployed page, etc.",
+      "skills": ["skill1", "skill2"]
+    }
   ]
 }
+PROMPT;
+    }
 
-Rules:
-- Make it specific to the learner's weak and strong areas.
-- Give realistic tasks that fit the learner's daily minutes and weekly days.
-- Provide real-looking study resources with valid https URLs where possible.
-- Keep tasks actionable, concise, and useful inside a dashboard.
-- Prefer official docs and respected learning resources.
-- Include 4 weeks of focus.
-- Include 3 todo sections and 4 to 8 total resources.
+    private static function decodeJsonResponse(string $text): ?array
+    {
+        $decoded = json_decode($text, true);
 
-Learner data:
-PROMPT
-            . json_encode($payload, JSON_PRETTY_PRINT);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        $cleaned = trim($text);
+        $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/\s*```$/', '', $cleaned) ?? $cleaned;
+        $decoded = json_decode(trim($cleaned), true);
+
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        if (preg_match('/\{.*\}/s', $text, $matches) !== 1) {
+            return null;
+        }
+
+        $decoded = json_decode($matches[0], true);
+
+        return is_array($decoded) ? $decoded : null;
     }
 
     private static function normalizeRoadmap(array $roadmap, array $fallback): array

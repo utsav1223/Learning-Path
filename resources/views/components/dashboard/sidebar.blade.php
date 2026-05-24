@@ -90,12 +90,35 @@ Notes:
     </div>
 
     <nav class="mt-5 grid gap-2 text-sm font-bold lg:mt-10 lg:grid lg:overflow-visible">
-      <a href="{{ route('dashboard') }}" class="block w-full rounded-2xl bg-white/10 px-4 py-3 text-white">Dashboard</a>
-      <a href="{{ route('assessment.show') }}" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Assessment</a>
-      <a href="{{ route('roadmap.show') }}" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Roadmap</a>
-      <a href="{{ route('roadmap.show') }}#path" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Learning Path</a>
-      <a href="{{ route('roadmap.show') }}#resources" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Resources</a>
-      <a href="{{ route('onboarding') }}" class="block w-full rounded-2xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white">Edit Profile</a>
+      <a href="{{ route('dashboard') }}"
+         class="{{ request()->routeIs('dashboard') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }} flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
+          Dashboard
+      </a>
+
+      <a href="{{ route('assessment.show') }}"
+         class="{{ request()->routeIs('assessment.*') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }} flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
+          Assessment
+      </a>
+
+      <a href="{{ route('roadmap.show') }}"
+         class="{{ request()->routeIs('roadmap.*') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }} flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
+          Roadmap
+      </a>
+
+      <a href="{{ route('roadmap.show') }}#path"
+         class="text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
+          Learning Path
+      </a>
+
+      <a href="{{ route('roadmap.show') }}#resources"
+         class="text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
+          Resources
+      </a>
+
+      <a href="{{ route('onboarding') }}"
+         class="{{ request()->routeIs('onboarding') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }} flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition">
+          Edit Profile
+      </a>
     </nav>
 
     <div class="mt-6 hidden rounded-3xl bg-white/10 p-5 lg:block">

@@ -18,7 +18,10 @@ class SocialController
     public function callback()
     {
         // $googleUser = Socialite::driver('google')->user();
-        $googleUser = Socialite::driver('google')->stateless()->user();
+         $googleUser = Socialite::driver('google')
+            ->stateless()
+            ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
+            ->user();
 
         // check if user already exists
         $user = User::where('email', $googleUser->getEmail())->first();
