@@ -10,7 +10,12 @@ class OnboardingController extends Controller
 {
     public function show(Request $request)
     {
-        return view('onboarding.show');
+        $user = $request->user()->load('profile');
+
+        return view('onboarding.show', [
+            'user' => $user,
+            'profile' => $user->profile,
+        ]);
     }
 
     public function store(Request $request)

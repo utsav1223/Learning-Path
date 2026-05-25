@@ -20,7 +20,40 @@
     <style>body { font-family: 'Manrope', sans-serif; }</style>
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
-    <main class="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8">
+    @php
+        $usesDashboardShell = filled($profile?->id) || filled($user?->onboarded_at);
+    @endphp
+
+    @if ($usesDashboardShell)
+        <div class="fixed inset-0 z-30 bg-slate-950/60 opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden" data-dashboard-sidebar-overlay></div>
+
+        <div class="min-h-screen lg:grid lg:grid-cols-[19rem_1fr]">
+            <div class="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90 lg:hidden">
+                <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">SkillWeave</p>
+                    <p class="text-sm font-extrabold">Manage profile</p>
+                </div>
+                <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" aria-label="Open navigation menu" aria-expanded="false" aria-controls="dashboard-sidebar" data-dashboard-sidebar-button>
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <x-dashboard.sidebar
+                :user="$user"
+                :profile="$profile"
+                :currentGoal="$profile?->learning_goal ?? $user->goal ?? 'Skill growth'"
+                :dailyMinutes="$profile?->daily_learning_time ?? 45"
+                :pace="$user->learning_pace ?? 'Steady'"
+            />
+    @endif
+
+    <main class="{{ $usesDashboardShell ? 'px-4 py-5 sm:px-6 lg:col-start-2 lg:px-8' : 'mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8' }}">
+        @if ($usesDashboardShell)
+            <div class="mx-auto max-w-[1500px]">
+        @endif
+
         <section class="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div class="border-b border-slate-200 p-5 dark:border-slate-800 sm:p-6 lg:p-8">
                 <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-stretch">
@@ -380,7 +413,15 @@
                 </aside>
             </div>
         </section>
+
+        @if ($usesDashboardShell)
+            </div>
+        @endif
     </main>
+
+    @if ($usesDashboardShell)
+        </div>
+    @endif
 
     <div class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/75 p-6 backdrop-blur-sm" data-generating-overlay>
         <div class="w-full max-w-md rounded-2xl border border-white/10 bg-white p-6 text-center shadow-2xl dark:bg-slate-900">
@@ -398,5 +439,35 @@
     </div>
 
     <script type="module" src="{{ asset('js/onboarding/show.js') }}"></script>
+    @if ($usesDashboardShell)
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const sidebar = document.querySelector('[data-dashboard-sidebar]');
+                const openButton = document.querySelector('[data-dashboard-sidebar-button]');
+                const closeButton = document.querySelector('[data-dashboard-sidebar-close]');
+                const overlay = document.querySelector('[data-dashboard-sidebar-overlay]');
+
+                if (!sidebar || !openButton || !overlay) return;
+
+                const setDrawerState = function (isOpen) {
+                    sidebar.classList.toggle('translate-x-0', isOpen);
+                    sidebar.classList.toggle('-translate-x-full', !isOpen);
+                    overlay.classList.toggle('opacity-0', !isOpen);
+                    overlay.classList.toggle('pointer-events-none', !isOpen);
+                    overlay.classList.toggle('opacity-100', isOpen);
+                    openButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    document.body.classList.toggle('overflow-hidden', isOpen);
+                };
+
+                setDrawerState(false);
+                openButton.addEventListener('click', () => setDrawerState(openButton.getAttribute('aria-expanded') !== 'true'));
+                closeButton?.addEventListener('click', () => setDrawerState(false));
+                overlay.addEventListener('click', () => setDrawerState(false));
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 1024) setDrawerState(false);
+                });
+            });
+        </script>
+    @endif
 </body>
 </html>

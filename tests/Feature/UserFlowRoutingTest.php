@@ -118,6 +118,18 @@ class UserFlowRoutingTest extends TestCase
         $this->assertSame('Updating the learner profile.', $user->fresh('profile')->profile->bio);
     }
 
+    public function test_existing_user_profile_editor_keeps_dashboard_navigation(): void
+    {
+        $user = $this->makeOnboardedUser();
+
+        $this->actingAs($user)
+            ->get('/onboarding')
+            ->assertOk()
+            ->assertSee('id="dashboard-sidebar"', false)
+            ->assertSee('Dashboard')
+            ->assertSee('Manage Profile');
+    }
+
     public function test_dashboard_handles_completed_assessment_without_answer_rows(): void
     {
         $user = $this->makeOnboardedUser();
